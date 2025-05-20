@@ -14,7 +14,7 @@ last_push = time.time()
 def send_data():
     token = os.environ['GH_TOKEN']
     owner = "jackvandeleuv"
-    repo = "temp-listener-data"
+    repo = "temp-monitor-data"
     path = "auto_temp_data.jsonl"
     api     = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
     headers = {
