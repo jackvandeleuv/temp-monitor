@@ -53,7 +53,7 @@
 
         const buckets = new Map();
         for (const d of data) {
-          const minuteTs = Math.floor(d.timestamp / 60) * 60;
+          const minuteTs = Math.floor(d.timestamp / 600) * 600;
           if (!buckets.has(minuteTs)) buckets.set(minuteTs, []);
           buckets.get(minuteTs).push(d.temperature);
         }
