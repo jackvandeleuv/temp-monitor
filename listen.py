@@ -70,7 +70,7 @@ def detect(device, adv):
             }) + '\n')
         global last_push
         secs_since_last_push = time.time() - last_push
-        if secs_since_last_push > 600:
+        if secs_since_last_push > 180:
             send_data()
             last_push = time.time()
 
