@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Erieview Temperature</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background: #f9fafb;
+    }
+    #chartWrapper {
+      max-width: 900px;
+      margin: auto;
+    }
+    canvas {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</head>
+<body>
+  <h1 class="text-xl mb-4">Erieview - 5th Floor - Temperature (°F)</h1>
+  <div id="chartWrapper">
+    <canvas id="myChart"></canvas>
+  </div>
+
+  <script>
+    (async () => {
+      const ctx = document.getElementById('myChart').getContext('2d');
+      const FILENAME = 'https://raw.githubusercontent.com/jackvandeleuv/temp-listener-data/refs/heads/main/auto_temp_data.jsonl';
+      let chart;
+
+      function cToF(c) {
+        return c * 9 / 5 + 32;
+      }
+
+      try {
+        const response = await fetch(FILENAME);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const text = await response.text();
+
+        const lines = text.trim().split(/\n+/);
+        let data = lines.map(line => JSON.parse(line));
+
+        const now = Date.now();
+        const cutoff = now - 24 * 60 * 60 * 1000;
+        data = data.filter(d => d.timestamp * 1000 >= cutoff);
+        if (data.length === 0)
+          throw new Error('No data points in the last 24\u202Fhours');
+
+        const buckets = new Map();
+        for (const d of data) {
+          const minuteTs = Math.floor(d.timestamp / 60) * 60;
+          if (!buckets.has(minuteTs)) buckets.set(minuteTs, []);
+          buckets.get(minuteTs).push(d.temperature);
+        }
+
+        const sortedKeys = Array.from(buckets.keys()).sort((a, b) => a - b);
+        const labels = [];
+        const tempsF = [];
+        for (const key of sortedKeys) {
+          const temps = buckets.get(key);
+          const avgC = temps.reduce((sum, t) => sum + t, 0) / temps.length;
+          const avgF = cToF(avgC);
+          labels.push(new Date(key * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+          tempsF.push(avgF.toFixed(1));
+        }
+
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Temperature (°F)',
+                data: tempsF,
+                yAxisID: 'y',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.3
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            interaction: {
+              mode: 'index',
+              intersect: false
+            },
+            scales: {
+              y: {
+                type: 'linear',
+                position: 'left',
+                title: {
+                  display: true,
+                  text: 'Temperature (°F)'
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                position: 'top'
+              }
+            }
+          }
+        });
+      } catch (err) {
+        document.body.insertAdjacentHTML('beforeend',
+          `<p style="color:red;margin-top:1rem;">Failed to load <strong>${FILENAME}</strong>: ${err.message}</p>`);
+        console.error(err);
+      }
+    })();
+  </script>
+</body>
+</html>
