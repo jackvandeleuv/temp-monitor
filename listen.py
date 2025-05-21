@@ -6,6 +6,7 @@ import base64
 import requests
 import os
 from dotenv import load_dotenv
+from collections import defaultdict
 
 load_dotenv()
 
@@ -16,13 +17,34 @@ def send_data():
     owner = "jackvandeleuv"
     repo = "temp-monitor-data"
     path = "auto_temp_data.jsonl"
-    api     = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+    api = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json"
     }
 
-    with open(f"temp_data_local.jsonl", "rb") as file:
+    temps = defaultdict(list)
+    humidities = defaultdict(list)
+    with open(f"temp_data_local.jsonl", "rt") as file:
+        for line in file:
+            row = json.loads(line)
+            key = (row['timestamp'] // 600) * 600  # Bucket every ten minutes.
+            temps[key].append(row['temperature'])
+            humidities[key].append(row['humidity'])
+
+    temp_data = []
+    for timestamp in temps:
+        temp_data.append({
+            'timestamp': timestamp,
+            'temperature': sum(temps[timestamp]) / len(temps[timestamp]),
+            'humidity': sum(humidities[timestamp]) / len(humidities[timestamp])
+        })
+
+    with open("temp_data_local_agg.jsonl", "w") as file:
+        for row in temp_data:
+            file.write(json.dumps(row) + '\n')
+            
+    with open(f"temp_data_local_agg.jsonl", "rb") as file:
         push(file.read(), api, headers)
 
 def current_sha(api, headers):
@@ -40,6 +62,8 @@ def push(blob: bytes, api, headers):
     try:
         r.raise_for_status()
     except Exception as e:
+        print('Push failure.')
+        print(time.time())
         print(e)
 
 def decode(encoded: bytes):
@@ -58,30 +82,36 @@ def decode(encoded: bytes):
 
 
 def detect(device, adv):
-    DEVICE_ID = os.environ['DEVICE_ID']
-    if DEVICE_ID in str(device):
-        encoded = adv.manufacturer_data[1]
-        temp, humidity = decode(encoded)
-        with open(f'temp_data_local.jsonl', 'a', encoding='utf-8') as file:
-            file.write(json.dumps({
-                'temperature': temp,
-                'humidity': humidity,
-                'timestamp': time.time()
-            }) + '\n')
-        global last_push
-        secs_since_last_push = time.time() - last_push
-        if secs_since_last_push > 300:
-            send_data()
-            last_push = time.time()
-
-async def main():
-    scanner = BleakScanner(detect)
-    await scanner.start()
     try:
-        while True:
-            await asyncio.sleep(10)
-    finally:
-        await scanner.stop()
+        DEVICE_ID = os.environ['DEVICE_ID']
+        if DEVICE_ID in str(device):
+            encoded = adv.manufacturer_data[1]
+            temp, humidity = decode(encoded)
+            with open(f'temp_data_local.jsonl', 'a', encoding='utf-8') as file:
+                file.write(json.dumps({
+                    'temperature': temp,
+                    'humidity': humidity,
+                    'timestamp': time.time()
+                }) + '\n')
+            global last_push
+            secs_since_last_push = time.time() - last_push
+            if secs_since_last_push > 300:
+                send_data()
+                last_push = time.time()
+    except Exception as e:
+        print('Detect failure.')
+        print(time.time())
+        print(e)
 
-if __name__ == "__main__":
-    asyncio.run(main())
+# async def main():
+#     scanner = BleakScanner(detect)
+#     await scanner.start()
+#     try:
+#         while True:
+#             await asyncio.sleep(10)
+#     finally:
+#         await scanner.stop()
+
+# if __name__ == "__main__":
+#     asyncio.run(main())
+send_data()
