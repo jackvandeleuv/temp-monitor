@@ -103,15 +103,14 @@ def detect(device, adv):
         print(time.time())
         print(e)
 
-# async def main():
-#     scanner = BleakScanner(detect)
-#     await scanner.start()
-#     try:
-#         while True:
-#             await asyncio.sleep(10)
-#     finally:
-#         await scanner.stop()
+async def main():
+    scanner = BleakScanner(detect)
+    await scanner.start()
+    try:
+        while True:
+            await asyncio.sleep(10)
+    finally:
+        await scanner.stop()
 
-# if __name__ == "__main__":
-#     asyncio.run(main())
-send_data()
+if __name__ == "__main__":
+    asyncio.run(main())
