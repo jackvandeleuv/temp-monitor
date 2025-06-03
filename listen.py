@@ -1,70 +1,11 @@
 import asyncio
 from bleak import BleakScanner
-import json
 import time
-import base64
 import requests
 import os
 from dotenv import load_dotenv
-from collections import defaultdict
 
 load_dotenv()
-
-last_push = time.time()
-
-def send_data():
-    token = os.environ['GH_TOKEN']
-    owner = "jackvandeleuv"
-    repo = "temp-monitor-data"
-    path = "auto_temp_data.jsonl"
-    api = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github+json"
-    }
-
-    temps = defaultdict(list)
-    humidities = defaultdict(list)
-    with open(f"temp_data_local.jsonl", "rt") as file:
-        for line in file:
-            row = json.loads(line)
-            key = (row['timestamp'] // 600) * 600  # Bucket every ten minutes.
-            temps[key].append(row['temperature'])
-            humidities[key].append(row['humidity'])
-
-    temp_data = []
-    for timestamp in temps:
-        temp_data.append({
-            'timestamp': timestamp,
-            'temperature': sum(temps[timestamp]) / len(temps[timestamp]),
-            'humidity': sum(humidities[timestamp]) / len(humidities[timestamp])
-        })
-
-    with open("temp_data_local_agg.jsonl", "w") as file:
-        for row in temp_data:
-            file.write(json.dumps(row) + '\n')
-            
-    with open(f"temp_data_local_agg.jsonl", "rb") as file:
-        push(file.read(), api, headers)
-
-def current_sha(api, headers):
-    r = requests.get(api, headers=headers)
-    return r.json()["sha"] if r.status_code == 200 else None
-
-def push(blob: bytes, api, headers):
-    body = {
-        "message": f"data {time.strftime('%F %T', time.gmtime())}",
-        "content": base64.b64encode(blob).decode(),
-    }
-    sha = current_sha(api, headers)
-    if sha: body["sha"] = sha
-    r = requests.put(api, headers=headers, data=json.dumps(body))
-    try:
-        r.raise_for_status()
-    except Exception as e:
-        print('Push failure.')
-        print(time.time())
-        print(e)
 
 def decode(encoded: bytes):
     base = int.from_bytes(encoded[2 : 5], "big")
@@ -80,27 +21,36 @@ def decode(encoded: bytes):
 
     return temp, humidity
 
+async def insert_into_supabase(row):
+    API_KEY = os.getenv("SUPABASE_CLIENT_ANON_KEY")
+    URL = os.getenv("SUPABASE_URL")
+
+    headers = {
+        "apikey": API_KEY,
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+    }
+
+    response = requests.post(URL, json=row, headers=headers, timeout=6)
+    response.raise_for_status()
 
 def detect(device, adv):
     try:
         DEVICE_ID = os.environ['DEVICE_ID']
-        if DEVICE_ID in str(device):
-            encoded = adv.manufacturer_data[1]
-            temp, humidity = decode(encoded)
-            with open(f'temp_data_local.jsonl', 'a', encoding='utf-8') as file:
-                file.write(json.dumps({
-                    'temperature': temp,
-                    'humidity': humidity,
-                    'timestamp': time.time()
-                }) + '\n')
-            global last_push
-            secs_since_last_push = time.time() - last_push
-            if secs_since_last_push > 300:
-                send_data()
-                last_push = time.time()
+        if DEVICE_ID not in str(device):
+            return
+        encoded = adv.manufacturer_data[1]
+        temp, humidity = decode(encoded)
+        asyncio.run(
+            insert_into_supabase({
+                'temperature': temp,
+                'humidity': humidity,
+                'reading_timestamp': time.time()
+            })
+        )
     except Exception as e:
-        print('Detect failure.')
-        print(time.time())
+        print(f'\nDetect failure at {time.time()}. Error message:')
         print(e)
 
 async def main():
