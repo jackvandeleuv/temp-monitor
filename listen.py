@@ -22,12 +22,12 @@ def decode(encoded: bytes):
     return temp, humidity
 
 def insert_into_supabase(row):
-    API_KEY = os.getenv("SUPABASE_CLIENT_ANON_KEY")
     URL = os.getenv("SUPABASE_URL")
+    SUPABASE_SERVER_SIDE_SECRET = os.getenv("SUPABASE_SECRET")
 
     headers = {
-        "apikey": API_KEY,
-        "Authorization": f"Bearer {API_KEY}",
+        "apikey": SUPABASE_SERVER_SIDE_SECRET,
+        "Authorization": f"Bearer {SUPABASE_SERVER_SIDE_SECRET}",
         "Content-Type": "application/json",
         "Prefer": "return=minimal"
     }
