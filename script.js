@@ -69,8 +69,6 @@ function updateHighLowTemps(today) {
         const mostRecent = today[today.length - 1];
 
         updateCurrentTemp(mostRecent);
-        // updateCurrentTemp({'timestamp': 1, 'temperature': 18})
-        // updateCurrentTemp({'timestamp': 1, 'temperature': 180})
         updateHighLowTemps(today);
 
         const todayTemp = today.map((c) => cToF(c.temperature));
@@ -86,68 +84,71 @@ function updateHighLowTemps(today) {
         if (chart) chart.destroy();
 
         chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [
-            {
-                label: 'Temperature (°F)',
-                data: todayTemp,
-                yAxisID: 'y',
-                borderWidth: 2,
-                fill: false,
-                tension: 0.3
-            }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-            x: {
-                ticks: {
-                font: {
-                    size: 16
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                {
+                    label: 'Temperature (°F)',
+                    data: todayTemp,
+                    yAxisID: 'y',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3
+                }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                x: {
+                    ticks: {
+                    font: {
+                        size: 16
+                    }
+                    },
+                    title: {
+                    display: true,
+                    text: 'Time',
+                    font: {
+                        size: 18
+                    }
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    position: 'left',
+                    ticks: {
+                    font: {
+                        size: 16
+                    }
+                    },
+                    title: {
+                    display: true,
+                    text: 'Temperature (°F)',
+                    font: {
+                        size: 18
+                    }
+                    }
                 }
                 },
-                title: {
-                display: true,
-                text: 'Time',
-                font: {
-                    size: 18
-                }
-                }
-            },
-            y: {
-                type: 'linear',
-                position: 'left',
-                ticks: {
-                font: {
-                    size: 16
-                }
-                },
-                title: {
-                display: true,
-                text: 'Temperature (°F)',
-                font: {
-                    size: 18
+                plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                    font: {
+                        size: 16
+                    }
+                    }
                 }
                 }
             }
-            },
-            plugins: {
-            legend: {
-                position: 'top',
-                labels: {
-                font: {
-                    size: 16
-                }
-                }
-            }
-            }
-        }
         });
 
+new ResizeObserver(() => {
+  chart.resize();
+}).observe(document.getElementById('chartWrapper'));
     } catch (err) {
         document.body.insertAdjacentHTML(
             'beforeend',
