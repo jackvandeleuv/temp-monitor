@@ -62,8 +62,7 @@ def push(blob: bytes, api, headers):
     try:
         r.raise_for_status()
     except Exception as e:
-        print('Push failure.')
-        print(time.time())
+        print(f'\nPush failure at {time.time()}. Error is:')
         print(e)
 
 def decode(encoded: bytes):
