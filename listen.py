@@ -21,7 +21,7 @@ def decode(encoded: bytes):
 
     return temp, humidity
 
-async def insert_into_supabase(row):
+def insert_into_supabase(row):
     API_KEY = os.getenv("SUPABASE_CLIENT_ANON_KEY")
     URL = os.getenv("SUPABASE_URL")
 
@@ -40,15 +40,16 @@ def detect(device, adv):
         DEVICE_ID = os.environ['DEVICE_ID']
         if DEVICE_ID not in str(device):
             return
+        
         encoded = adv.manufacturer_data[1]
         temp, humidity = decode(encoded)
-        asyncio.run(
-            insert_into_supabase({
-                'temperature': temp,
-                'humidity': humidity,
-                'reading_timestamp': time.time()
-            })
-        )
+    
+        insert_into_supabase({
+            'temperature': temp,
+            'humidity': humidity,
+            'reading_timestamp': time.time()
+        })
+        
     except Exception as e:
         print(f'\nDetect failure at {time.time()}. Error message:')
         print(e)
