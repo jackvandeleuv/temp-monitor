@@ -101,18 +101,34 @@ function updateHighLowTemps(today) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                mode: null
+                },
+                plugins: {
+                tooltip: {
+                    enabled: false
+                },
+                legend: {
+                    position: 'top',
+                    labels: {
+                    font: {
+                        size: 20
+                    }
+                    }
+                }
+                },
                 scales: {
                 x: {
                     ticks: {
                     font: {
-                        size: 16
+                        size: 20
                     }
                     },
                     title: {
                     display: true,
                     text: 'Time',
                     font: {
-                        size: 18
+                        size: 20
                     }
                     }
                 },
@@ -121,34 +137,22 @@ function updateHighLowTemps(today) {
                     position: 'left',
                     ticks: {
                     font: {
-                        size: 16
+                        size: 20
                     }
                     },
                     title: {
                     display: true,
                     text: 'Temperature (°F)',
                     font: {
-                        size: 18
+                        size: 20
                     }
                     }
                 }
                 },
-                plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                    font: {
-                        size: 16
-                    }
-                    }
-                }
-                }
+                events: []
             }
         });
 
-new ResizeObserver(() => {
-  chart.resize();
-}).observe(document.getElementById('chartWrapper'));
     } catch (err) {
         document.body.insertAdjacentHTML(
             'beforeend',
