@@ -1,5 +1,5 @@
 function cToF(c) {
-    return (c * (9 / 5) + 32).toFixed(1);
+    return (c * (9 / 5) + 32).toFixed(0);
 }
 
 function minutesAgoLabel(timestamp) {
