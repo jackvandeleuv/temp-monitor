@@ -86,44 +86,68 @@ function updateHighLowTemps(today) {
         if (chart) chart.destroy();
 
         chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [
-                    {
-                        label: 'Temperature (°F)',
-                        data: todayTemp,
-                        yAxisID: 'y',
-                        borderWidth: 2,
-                        fill: false,
-                        tension: 0.3
-                    }
-                ]
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+            {
+                label: 'Temperature (°F)',
+                data: todayTemp,
+                yAxisID: 'y',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.3
+            }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+            x: {
+                ticks: {
+                font: {
+                    size: 16
+                }
+                },
+                title: {
+                display: true,
+                text: 'Time',
+                font: {
+                    size: 18
+                }
+                }
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false
+            y: {
+                type: 'linear',
+                position: 'left',
+                ticks: {
+                font: {
+                    size: 16
+                }
                 },
-                scales: {
-                    y: {
-                        type: 'linear',
-                        position: 'left',
-                        title: {
-                            display: true,
-                            text: 'Temperature (°F)'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    }
+                title: {
+                display: true,
+                text: 'Temperature (°F)',
+                font: {
+                    size: 18
+                }
                 }
             }
+            },
+            plugins: {
+            legend: {
+                position: 'top',
+                labels: {
+                font: {
+                    size: 16
+                }
+                }
+            }
+            }
+        }
         });
+
     } catch (err) {
         document.body.insertAdjacentHTML(
             'beforeend',
