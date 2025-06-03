@@ -112,7 +112,7 @@ function updateHighLowTemps(today) {
                     position: 'top',
                     labels: {
                     font: {
-                        size: 20
+                        size: 24
                     }
                     }
                 }
@@ -121,14 +121,14 @@ function updateHighLowTemps(today) {
                 x: {
                     ticks: {
                     font: {
-                        size: 20
+                        size: 24
                     }
                     },
                     title: {
                     display: true,
                     text: 'Time',
                     font: {
-                        size: 20
+                        size: 24
                     }
                     }
                 },
@@ -137,14 +137,14 @@ function updateHighLowTemps(today) {
                     position: 'left',
                     ticks: {
                     font: {
-                        size: 20
+                        size: 24
                     }
                     },
                     title: {
                     display: true,
-                    text: 'Temperature (°F)',
+                    text: 'Temperature',
                     font: {
-                        size: 20
+                        size: 24
                     }
                     }
                 }
