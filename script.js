@@ -1,5 +1,5 @@
-function cToF(c) {
-    return (c * (9 / 5) + 32).toFixed(1);
+function cToF(c, decimals=1) {
+    return (c * (9 / 5) + 32).toFixed(decimals);
 }
 
 function minutesAgoLabel(timestamp) {
@@ -12,7 +12,7 @@ function minutesAgoLabel(timestamp) {
     return `${minutes} minutes ago`;
 }
 
-function updateBackground(temp) {
+function tempToColor(temp) {
   const min = 65;   
   const max = 85;     
   let ratio = (temp - min) / (max - min);
@@ -25,24 +25,30 @@ function updateBackground(temp) {
   const g = Math.round(start.g + ratio * (end.g - start.g));
   const b = Math.round(start.b + ratio * (end.b - start.b));
 
-  document.body.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
 function updateCurrentTemp(mostRecent) {
-    document.getElementById('currentTemp').innerHTML = `Current: ${cToF(mostRecent.temperature)}&#176;`;
+    document.getElementById('currentTemp').innerHTML = `Current: ${cToF(mostRecent.temperature, 0)}&#176;`;
     document.getElementById('lastUpdateBox').innerText = `Last Updated: ${minutesAgoLabel(mostRecent.timestamp)}`;
-    updateBackground(cToF(mostRecent.temperature));
+    document.body.style.backgroundColor = tempToColor(cToF(mostRecent.temperature));
 }
 
 function updateHighLowTemps(today) {
     const todayCopy = [...today];
     todayCopy.sort((a, b) => a.temperature - b.temperature);
 
-    const high = cToF(todayCopy[todayCopy.length - 1].temperature);
-    const low = cToF(todayCopy[0].temperature);
+    const high = cToF(todayCopy[todayCopy.length - 1].temperature, 0);
+    const low = cToF(todayCopy[0].temperature, 0);
 
-    document.getElementById('highTemp').innerHTML = `Daily High: ${high}&#176;`;
-    document.getElementById('lowTemp').innerHTML = `Daily Low: ${low}&#176;`;
+    const highBox = document.getElementById('highTemp');
+    const lowBox = document.getElementById('lowTemp')
+    
+    highBox.innerHTML = `High: ${high}&#176;`
+    highBox.style.backgroundColor = tempToColor(high);
+
+    lowBox.innerHTML = `Low: ${low}&#176;`;
+    lowBox.style.backgroundColor = tempToColor(low);
 }
 
 (async () => {
@@ -94,7 +100,8 @@ function updateHighLowTemps(today) {
                     yAxisID: 'y',
                     borderWidth: 2,
                     fill: false,
-                    tension: 0.3
+                    tension: 0.3,
+                    borderColor: 'black'
                 }
                 ]
             },
