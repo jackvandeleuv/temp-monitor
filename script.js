@@ -13,25 +13,49 @@ function minutesAgoLabel(timestamp) {
 }
 
 function tempToColor(temp) {
-  const min = 65;   
-  const max = 85;     
-  let ratio = (temp - min) / (max - min);
-  ratio = Math.min(Math.max(ratio, 0), 1);   
+    const min = 65;   
+    const max = 85;     
+    let ratio = (temp - min) / (max - min);
+    ratio = Math.min(Math.max(ratio, 0), 1);   
 
-  const start = { r: 0xd0, g: 0xe8, b: 0xff };
-  const end   = { r: 0xff, g: 0xeb, b: 0xd2 }; 
+    const start = { r: 0xd0, g: 0xe8, b: 0xff };
+    const end   = { r: 0xff, g: 0xeb, b: 0xd2 }; 
 
-  const r = Math.round(start.r + ratio * (end.r - start.r));
-  const g = Math.round(start.g + ratio * (end.g - start.g));
-  const b = Math.round(start.b + ratio * (end.b - start.b));
+    const r = Math.round(start.r + ratio * (end.r - start.r));
+    const g = Math.round(start.g + ratio * (end.g - start.g));
+    const b = Math.round(start.b + ratio * (end.b - start.b));
 
-  return `rgb(${r}, ${g}, ${b})`;
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+function tempToEmojis(temp) {
+    if (temp < 61) {  // below 61
+        return "💀"
+    } else if (temp < 64) {  // 61 - 63
+        return "🐧"
+    } else if (temp < 67) {  // 64 - 66
+        return "🥶"
+    } else if (temp < 69) {  // 67 - 69
+        return "😣"
+    } else if (temp < 75) {  // 70 - 74
+        return "😻"
+    } else if (temp < 78) {  // 75 - 77
+        return "😓"
+    } else if (temp < 81) {  // 78 - 80
+        return "🥵"
+    } else if (temp < 84) {  // 81 - 83
+        return "🐦‍🔥"
+    } else {
+        return "💀"  // 84 and above
+    }
 }
 
 function updateCurrentTemp(mostRecent) {
+    console.log(tempToEmojis(cToF(mostRecent.temperature)))
     document.getElementById('currentTemp').innerHTML = `Current: ${cToF(mostRecent.temperature, 0)}&#176;`;
     document.getElementById('lastUpdateBox').innerText = `Last Updated: ${minutesAgoLabel(mostRecent.timestamp)}`;
     document.body.style.backgroundColor = tempToColor(cToF(mostRecent.temperature));
+    document.getElementById('emoji').innerHTML = tempToEmojis(cToF(mostRecent.temperature));
 }
 
 function updateHighLowTemps(today) {
