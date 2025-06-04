@@ -12,6 +12,11 @@ load_dotenv()
 
 last_push = time.time()
 
+def log_failure(e):
+    print('Detect failure.')
+    print(time.time())
+    print(e)
+
 def send_data():
     token = os.environ['GH_TOKEN']
     owner = "jackvandeleuv"
@@ -98,9 +103,7 @@ def detect(device, adv):
                 send_data()
                 last_push = time.time()
     except Exception as e:
-        print('Detect failure.')
-        print(time.time())
-        print(e)
+        log_failure(e)
 
 async def main():
     scanner = BleakScanner(detect)
