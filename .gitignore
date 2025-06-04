@@ -1,3 +1,4 @@
 .env
 temp_data_local.jsonl
 temp_data_local_agg.json
+temp_data_local_agg.jsonl
