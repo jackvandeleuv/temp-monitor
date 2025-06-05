@@ -36,7 +36,7 @@ function tempToEmojis(temp) {
     } else if (temp < 67) {  // 64 - 66
         return "🥶"
     } else if (temp < 69) {  // 67 - 69
-        return "😣"
+        return "😬"
     } else if (temp < 75) {  // 70 - 74
         return "😻"
     } else if (temp < 78) {  // 75 - 77
