@@ -102,7 +102,7 @@ function indicateFailure() {
         const mostRecent = data[data.length - 1];
         const now = Date.now();
 
-        if ((now - mostRecent.timestamp) > 3600) {
+        if ((now  - (mostRecent.timestamp * 1000)) > (3600 * 1000)) {
             indicateFailure();
             throw new Error('The temperature tracker is experiencing an outage. Please do not panic.');
         }
