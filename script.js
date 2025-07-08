@@ -66,13 +66,21 @@ function updateHighLowTemps(today) {
     const low = cToF(todayCopy[0].temperature, 0);
 
     const highBox = document.getElementById('highTemp');
-    const lowBox = document.getElementById('lowTemp')
+    const lowBox = document.getElementById('lowTemp');
     
-    highBox.innerHTML = `High: ${high}&#176;`
+    highBox.innerHTML = `High: ${high}&#176;`;
     highBox.style.backgroundColor = tempToColor(high);
 
     lowBox.innerHTML = `Low: ${low}&#176;`;
     lowBox.style.backgroundColor = tempToColor(low);
+}
+
+function indicateFailure() {
+    document.getElementById('currentTemp').innerHTML = `Current: (BLANK)`;
+    document.getElementById('emoji').innerHTML = "🙀";
+
+    // document.getElementById('highTemp').innerHTML = `High: -`;
+    // document.getElementById('lowTemp').innerHTML = `Low: `;
 }
 
 (async () => {
@@ -95,6 +103,7 @@ function updateHighLowTemps(today) {
         const now = Date.now();
 
         if ((now - mostRecent.timestamp) > 3600) {
+            indicateFailure();
             throw new Error('The temperature tracker is experiencing an outage. Please do not panic.');
         }
 
