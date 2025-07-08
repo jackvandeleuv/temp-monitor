@@ -199,7 +199,7 @@ function indicateFailure() {
     } catch (err) {
         document.body.insertAdjacentHTML(
             'beforeend',
-            `<p style="color:red;margin-top:1rem;">Failed to load <strong>${FILENAME}</strong>: ${err.message}</p>`
+            `<p style="color:red;margin-top:1rem;">${err.message}</p>`
         );
         console.error(err);
         }
