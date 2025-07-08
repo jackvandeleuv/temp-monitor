@@ -76,9 +76,9 @@ function updateHighLowTemps(today) {
 }
 
 function indicateFailure() {
-    document.getElementById('currentTemp').innerHTML = `Current: (BLANK)`;
     document.getElementById('emoji').innerHTML = "🙀";
 
+    // document.getElementById('currentTemp').innerHTML = `Current: (BLANK)`;
     // document.getElementById('highTemp').innerHTML = `High: -`;
     // document.getElementById('lowTemp').innerHTML = `Low: `;
 }
