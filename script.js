@@ -95,7 +95,7 @@ function indicateFailure() {
 
         const lines = text.trim().split(/\n+/);
         let data = lines.map(line => JSON.parse(line));
-        if (data.length === 0) throw new Error('No data points in the last 24\u202Fhours');
+        if (data.length === 0) throw new Error('The temperature tracker is experiencing an outage. Please do not panic.');
 
         data.sort((a, b) => a.timestamp - b.timestamp);
 
