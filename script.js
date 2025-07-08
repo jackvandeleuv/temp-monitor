@@ -87,16 +87,19 @@ function updateHighLowTemps(today) {
 
         const lines = text.trim().split(/\n+/);
         let data = lines.map(line => JSON.parse(line));
-
         if (data.length === 0) throw new Error('No data points in the last 24\u202Fhours');
 
+        data.sort((a, b) => a.timestamp - b.timestamp);
+
+        const mostRecent = data[data.length - 1];
         const now = Date.now();
+
+        if ((now - mostRecent.timestamp) > 3600) {
+            throw new Error('The temperature tracker is experiencing an outage. Please do not panic.');
+        }
+
         const startToday = now - 24 * 60 * 60 * 1000;
-
         const today = data.filter(d => d.timestamp * 1000 >= startToday);
-        today.sort((a, b) => a.timestamp - b.timestamp);
-
-        const mostRecent = today[today.length - 1];
 
         updateCurrentTemp(mostRecent);
         updateHighLowTemps(today);
