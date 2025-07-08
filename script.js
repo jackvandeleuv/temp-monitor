@@ -3,7 +3,6 @@ function cToF(c, decimals=1) {
 }
 
 function minutesAgoLabel(timestamp) {
-    console.log(timestamp)
     const diffMs = Date.now() - new Date(timestamp * 1000).getTime();
     const minutes = Math.floor(diffMs / 60000); 
 
@@ -51,7 +50,6 @@ function tempToEmojis(temp) {
 }
 
 function updateCurrentTemp(mostRecent) {
-    console.log(tempToEmojis(cToF(mostRecent.temperature)))
     document.getElementById('currentTemp').innerHTML = `Current: ${cToF(mostRecent.temperature, 0)}&#176;`;
     document.getElementById('lastUpdateBox').innerText = `Last Updated: ${minutesAgoLabel(mostRecent.timestamp)}`;
     document.body.style.backgroundColor = tempToColor(cToF(mostRecent.temperature));
@@ -102,7 +100,8 @@ function indicateFailure() {
         const mostRecent = data[data.length - 1];
         const now = Date.now();
 
-        if ((now  - (mostRecent.timestamp * 1000)) > (3600 * 1000)) {
+        const secondDiff = (now  - (mostRecent.timestamp * 1000)) / 1000;
+        if (secondDiff > 3600) {
             indicateFailure();
             throw new Error('The temperature tracker is experiencing an outage. Please do not panic.');
         }
