@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html>
+<head><meta name='robots' content='none' /><base href="https://n565.network-auth.com/Guest/hi/61-BGdY/" />
+  <title> Guest</title>
+  <style type="text/css" media="screen">
+    html { font-size: 100%;-webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+form { margin: 0; }
+label { cursor: pointer; }
+button, input {
+  -webkit-appearance:none;
+  font-size: 100%;
+  margin: 0;
+  vertical-align: baseline;
+  *vertical-align: middle;
+  line-height: normal;
+  *overflow: visible;
+}
+button::-moz-focus-inner, input::-moz-focus-inner { border: 0; padding: 0; }
+
+a, a:visited, a:active {color: #fff; text-decoration: none;}
+
+.hidden { display: none; }
+
+body {
+  margin: 0;
+  background: #eee;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.4em;
+  font-family: georgia, palatino, serif;
+}
+
+h1, h2,  h3, p, a {
+  font-family: CiscoSans, helvetica, helvetica neue, verdana, tahoma, sans-serif;
+}
+h1 {
+  font-size: 30px;
+  font-weight: 100;
+  line-height: 35px;
+  color: #555;
+  margin: 0 0 1em;
+}
+h2 {
+  font-size: 14px;
+  font-weight: normal;
+}
+h3 {
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: #888;
+}
+p{
+  color: #555;
+}
+
+.link_in_text a { color: #555 }
+
+.header {
+  border-bottom: 1px solid #ddd;
+  padding: 2em 0;
+  margin: 0 0 2em 0;
+}
+
+.header table { width: 100%; }
+#title_cell { vertical-align: bottom; }
+#icon_cell { text-align: center; }
+#icon_cell img {
+  max-width: 200px;
+  max-height: 100px;
+}
+
+#container {
+  max-width: 900px;
+  min-width: 300px;
+  margin: 0 auto;
+  background: #fff;
+  text-align: center;
+}
+
+#content {
+  background: #fff;
+}
+
+#continue {
+  padding: 2em;
+}
+
+#blocked {
+  padding: 2em;
+}
+
+#auth {
+  box-sizing: border-box;
+  padding: 0 1.5em 2em;
+}
+
+#left_col {
+  width: 100%;
+  margin-bottom: 3em;
+  text-align: left;
+}
+
+#right_col {
+  width: 100%;
+  text-align: left;
+  margin-top: 4em;
+  margin: 0 auto;
+}
+
+#account a {
+  color: #1795E6;
+  margin-right:  1em;
+  padding-right: 1em;
+  border-right: 1px solid #ccc;
+}
+
+#account a:hover {
+  color: #0876BD;
+}
+
+#account a:last-child {
+  border: none;
+}
+
+#sign_in {
+  background: #777777;
+  color: #ffffff;
+  border-radius: 2px;
+  margin: 2.5em 0 1em;
+  padding: 1em;
+  box-sizing: border-box;
+  width: 100%;
+  display: inline-block;
+  text-align: center;
+}
+
+#sign_in:hover {
+  opacity: .85;
+}
+
+#blocked_msg {
+  text-align: center;
+  padding: 15px 0;
+}
+
+#claim_ap_msg {
+  text-align: center;
+  padding: 15px 0;
+}
+
+.formarea h3 {
+  line-height: 0;
+}
+
+.formarea input {
+  background: #eee;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+  border-radius: 2px;
+  padding: .7em;
+  width: 100%;
+}
+
+#email_field {
+  margin-bottom: 1.5em;
+}
+
+.button {
+  color: #ffffff;
+  background: #777777;
+  padding: 1em 2em;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  display: inline-block;
+  margin: 1em 0;
+}
+
+.button:hover {
+  opacity: .85;
+}
+
+#forgot_password, .form_links:not(.hidden) {
+  display: inline;
+}
+
+#signin_form .form_links {
+  float: right;
+}
+
+#forgot_password a,
+.form_links a {
+  font-size:  12px;
+  color: #1795E6;
+}
+
+#forgot_password a:hover,
+.form_links a:hover {
+  color: #0876BD;
+}
+
+#create_account_form h3 {
+  margin-top: 3em;
+}
+
+.footer {
+  width: 100%;
+  background: #eee;
+  border-top: 1px solid #ddd;
+  padding: 2em 0;
+  text-align: center;
+  display: inline-block;
+}
+
+.footer img {
+  margin: .5em 0;
+}
+
+.meraki_go_footer {
+  width: 100%;
+  background: #fff;
+  border-top: 1px solid #ddd;
+  padding: 2em 0;
+  text-align: center;
+  display: inline-block;
+}
+
+.meraki_go_footer img {
+  margin: .5em 0;
+}
+
+.error {
+  background: #eee;
+  border-radius: 2px;
+  border: 1px solid #ddd;
+  margin: 3em 3em 0;
+  box-sizing: border-box;
+  padding: 0 .5em;
+}
+
+.error p {
+  color: #999;
+  font-size: 12px;
+}
+
+.login-error {
+  background: #ffdddd;
+  border-radius: 2px;
+  border: 1px solid #ffb8b8;
+  box-sizing: border-box;
+  text-align: center;
+  margin-bottom: 2em;
+}
+
+.login-error p {
+  color: #ff5959;
+  font-size: 12px;
+}
+
+.login-error img {
+  width: 11px;
+  margin: 5px 7px 0 0;
+}
+
+input:invalid, textarea:invalid { background-color: #f0dddd; }
+.formarea input:invalid, textarea:invalid { border-radius: 1px; -moz-box-shadow: 0px 0px 0px red; -webkit-box-shadow: 0px 0px 0px red; box-shadow: 0px 0px 0px red; }
+.formarea label.invalid {border: none; color: red; min-height: inherit; padding: 5px 0 0; margin: 0;}
+
+@media (min-width: 370px) {
+  #auth {
+    padding: 3em 3em 5em;
+  }
+  #left_col {
+    text-align: center;
+  }
+}
+
+@media (min-width: 550px) {
+  #auth {
+    padding: 3em 3em 5em;
+  }
+  #left_col {
+    width: 70%;
+    margin: 0 auto;
+    padding-bottom: 3em;
+    text-align: center;
+  }
+  #right_col {
+    width: 70%;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 730px) {
+  #auth {
+    display: inline-block;
+    padding: 3em 3em 5em;
+  }
+  #left_col {
+    float: left;
+    text-align: left;
+    width: 50%;
+    padding-right: 3em;
+    box-sizing: border-box;
+  }
+  #right_col {
+    float: left;
+    width: 50%;
+    margin: 0;
+    padding-left: 3em;
+    box-sizing: border-box;
+  }
+}
+
+.GoSplash .header {
+  padding-top: 4em;
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.GoSplash #blocked {
+  padding-top: 1em;
+}
+
+.GoSplash .GoSplash__blockedIcon {
+  height: 8em;
+}
+
+.GoSplash .GoSplash__blockedIconLine--primary {
+  fill: #213A44;
+}
+
+.GoSplash .GoSplash__blockedIconLine--accent {
+  fill: #16E4D8;
+}
+
+.GoSplash h1 {
+  font-weight: 300;
+  color: #213A44;
+}
+
+.GoSplash p {
+  color: #666F77;
+}
+
+@media (max-width: 400px) {
+  .GoSplash .GoSplash__blockedIcon {
+    height: 6em;
+  }
+
+  .GoSplash .header {
+    padding-top: 2em;
+    padding-bottom: 0.5em;
+  }
+
+  .GoSplash h1 {
+    font-size: 24px;
+  }
+}
+
+  </style>
+  <meta name="viewport" content="width=device-width,initial-scale=1" >
+</head>
+
+<body>
+  <div id="content">
+    <div id="container">
+      <div class="header">
+        <div id="icon_cell"><img src='data:image/png;base64,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
+iST/2Q==
+' /></div>
+      </div>
+
+      <div class="error go-notice-toggle hidden">
+        <p><!-- NOTICE_MESSAGES --></p>
+      </div>
+
+      <div id="auth">
+        <div id="left_col">
+          <h1>Welcome to Guest</h1>
+          <p></p>
+          <p>You will need to be on the list of authorized users for this network in order to access the Internet.</p>
+        </div>
+
+        <div id="right_col">
+          <div class="login-error go-error-toggle hidden">
+            <p><img src="/images/warning_red.png" alt="Warning red" /><!-- ERROR_MESSAGES --></p>
+          </div>
+          <div id="signin_form" class="formarea">
+                  <form id="sign_in_form" onsubmit="javascript:return update_form_action_from_headers(document.getElementById(&quot;sign_in_form&quot;));" action="https://n565.network-auth.com/Guest/hi/61-BGdY/login?continue_url=https%3A%2F%2Fwww.google.com" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" />
+        <div id="signin_form" class="formarea">
+          <h3>EMAIL</h3>
+          <input id="email_field" name="email" type="text" required>
+          <h3>PASSWORD</h3>
+          <input id="password_field" name="password" type="password" class="jsAnalyticsExclude">
+          <input type="submit" name="commit" value="Sign In" class="btn btn-default" id="sign_in" />
+        </div>
+      </form>
+      <script type="text/javascript" charset="utf-8">
+        
+      </script>
+            <div id="forgot_password">
+        <a href="https://account.network-auth.com/account/reset_account_password">I forgot my password</a>
+      </div>
+
+            <script type="text/javascript" charset="utf-8">
+        var link = document.getElementById('resend_email_link');
+        var msg = document.getElementById('resend_email_message');
+        link.addEventListener("click", function(e) {
+          e.preventDefault();
+          var xmlhttp = new XMLHttpRequest();
+          xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState == XMLHttpRequest.DONE ) {
+              if (xmlhttp.status == 200) {
+                msg.innerHTML = "Email sent successfully.";
+              } else {
+                msg.innerHTML = "Your account cannot be verified by email. If you believe you are seeing this message in error, please contact the network administrator.";
+              }
+            }
+          };
+          xmlhttp.open("GET", link.href, true);
+          xmlhttp.send();
+        });
+      </script>
+
+
+            <div class="form_links ">
+              <a class="toggle_link" id="create_account_link" href="#">Create an account</a>
+            </div>
+          </div>
+
+          <div id="account" class="form_links ">
+            <div id="create_account_form" class="formarea ">
+              <h2>If you don't have an account yet, complete this form:</h2>
+              
+
+<form id="splash_create_new_account_form" onsubmit="javascript:return disable_subsequent_click();" action="https://n565.network-auth.com/Guest/hi/61-BGdY/signup" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" />
+  <input type="hidden" name="continue_url" id="continue_url" value="http%3A%2F%2Fclientconfig.microsoftonline-p.net%2Ffplist.xml" />
+  <h3>NAME</h3><input size="25" type="text" name="user[name]" id="user_name" />
+  <h3>EMAIL</h3><input size="30" type="text" name="user[email]" id="user_email" />
+  <h3>EMAIL (AGAIN)</h3><input size="30" type="text" name="user[email_confirmation]" id="user_email_confirmation" />
+  <h3>PASSWORD</h3><input size="20" class="jsAnalyticsExclude" type="password" name="user[password]" id="user_password" />
+  <h3>PASSWORD (AGAIN)</h3><input size="20" class="jsAnalyticsExclude" type="password" name="user[password_confirmation]" id="user_password_confirmation" />
+  <input type="submit" name="commit" value="Create new account" class="btn btn-default" id="sign_in" />
+</form>
+
+      <script type="text/javascript">
+      //<![CDATA[
+        (function() {
+          var form_el = document.getElementById('splash_create_new_account_form');
+          var button_el = document.getElementById('splash_create_new_account_button');
+          if (document.addEventListener) {
+            form_el.addEventListener('submit', function(e) { button_el.disabled = true; }, true);
+          } else if (document.attachEvent) {
+            form_el.attachEvent('onsubmit', function(e) { button_el.disabled = true; });
+          }
+        })();
+      //]]>
+      </script>
+
+
+              <div class="form_links">
+                <a class="toggle_link" id="signin_link" href="#">Sign In</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="footer">
+    <h3>POWERED BY</h3>
+    <img width="100" alt="Cisco Meraki" src="/images/cisco-meraki-gray.png" />
+  </div>
+
+      <script type="text/javascript" charset="utf-8">
+        document.getElementById("create_account_form").style.display = 'none';
+
+        function show_signin() {
+          document.getElementById("signin_form").style.display = 'block';
+          document.getElementById("create_account_form").style.display = 'none';
+          do_prevent(arguments);
+          return false;
+        }
+
+        function show_create_account() {
+          document.getElementById("signin_form").style.display = 'none';
+          document.getElementById("create_account_form").style.display = 'block';
+          do_prevent(arguments);
+          return false;
+        }
+
+        function do_prevent(args) {
+          if(args.length > 0 && typeof(args[0].preventDefault) == 'function')
+            args[0].preventDefault();
+        }
+
+        if (document.addEventListener) {
+          var c_a_l = document.getElementById('create_account_link'); if (c_a_l) { c_a_l.addEventListener('click', show_create_account, true); }
+          var s_l = document.getElementById('signin_link'); if (c_a_l) { s_l.addEventListener('click', show_signin, true); }
+        } else if (document.attachEvent) {
+          var c_a_l = document.getElementById('create_account_link'); if (c_a_l) { c_a_l.attachEvent('onclick', show_create_account); }
+          var s_l = document.getElementById('signin_link'); if (c_a_l) { s_l.attachEvent('onclick', show_signin); }
+        }
+      </script>
+
+      <script type="text/javascript" charset="utf-8">
+        
+              function disable_subsequent_click() {
+        var sign_in_button = document.getElementById('sign_in');
+        if (sign_in_button != null) {
+          setTimeout('sign_in_button.disabled = false;', 60000);
+          sign_in_button.disabled = true;
+        }
+        return true;
+      }
+
+      function update_form_action_from_headers(form) {
+        disable_subsequent_click();
+        var _request = new XMLHttpRequest();
+        var url = 'https://n565.network-auth.com/Guest/hi/61-BGdY/login?continue_url=CONTINUE_URL_PLACEHOLDER';
+        _request.open('HEAD', window.location, true);
+        _request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        _request.onreadystatechange = function() {
+          if (_request.readyState === 4) {
+            var continue_url = _request.getResponseHeader('Continue-Url');
+            form.action = url.replace('CONTINUE_URL_PLACEHOLDER', continue_url);
+            form.submit();
+          }
+        }
+        _request.send(null);
+        return false;
+      }
+
+        
+      </script>
+
+</body>
+</html>

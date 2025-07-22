@@ -82,17 +82,33 @@ function indicateFailure() {
 }
 
 (async () => {
+    ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6aWd2cWZhZHd1a2Rrc3NvY2ZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5ODA2MTYsImV4cCI6MjA2NDU1NjYxNn0.5txdBRGZcwFNndwGwV0jsRY5C1MvdArypPpCg0QOxTU';
+
     const ctx = document.getElementById('chart').getContext('2d');
-    const FILENAME = 'https://raw.githubusercontent.com/jackvandeleuv/temp-monitor-data/refs/heads/main/auto_temp_data.jsonl';
     let chart;
 
     try {
-        const response = await fetch(FILENAME);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const text = await response.text();
+        const RPC_URL = `https://pzigvqfadwukdkssocfh.supabase.co/rest/v1/rpc/readings_agg`;
+        const headers = {
+            apikey: ANON_KEY,
+            Authorization: `Bearer ${ANON_KEY}`,
+            'Content-Type': 'application/json',
+        };
+        const body = JSON.stringify({
+            _bucket_minutes: 20,
+            _lookback_hours: 24
+        });
 
-        const lines = text.trim().split(/\n+/);
-        let data = lines.map(line => JSON.parse(line));
+        const response = await fetch(RPC_URL, {
+            method: 'POST',
+            headers,
+            body
+        });
+        const responseJSON = await response.json();
+        const data = responseJSON.map((obj) => (
+            {temperature: obj.avg_temperature, timestamp: Number(new Date(obj.bucket_start))}
+        ));
+
         if (data.length === 0) throw new Error('The temperature tracker is experiencing an outage. Please do not panic.');
 
         data.sort((a, b) => a.timestamp - b.timestamp);
