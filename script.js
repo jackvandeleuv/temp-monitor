@@ -106,7 +106,10 @@ function indicateFailure() {
         });
         const responseJSON = await response.json();
         const data = responseJSON.map((obj) => (
-            {temperature: obj.avg_temperature, timestamp: Number(new Date(obj.bucket_start))}
+            {
+                temperature: obj.avg_temperature, 
+                timestamp: Math.round(Number(new Date(obj.bucket_start)) / 1000)
+            }
         ));
 
         if (data.length === 0) throw new Error('The temperature tracker is experiencing an outage. Please do not panic.');
@@ -114,16 +117,17 @@ function indicateFailure() {
         data.sort((a, b) => a.timestamp - b.timestamp);
 
         const mostRecent = data[data.length - 1];
-        const now = Date.now();
+        const now = Math.round(Date.now() / 1000);
 
-        const secondDiff = (now  - (mostRecent.timestamp * 1000)) / 1000;
+        const secondDiff = now  - mostRecent.timestamp;
+
         if (secondDiff > 3600) {
             indicateFailure();
             throw new Error('The temperature tracker is experiencing an outage. Please do not panic.');
         }
 
-        const startToday = now - 24 * 60 * 60 * 1000;
-        const today = data.filter(d => d.timestamp * 1000 >= startToday);
+        const startToday = now - 24 * 3600;
+        const today = data.filter(d => d.timestamp >= startToday);
 
         updateCurrentTemp(mostRecent);
         updateHighLowTemps(today);
