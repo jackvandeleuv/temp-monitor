@@ -28,14 +28,16 @@ function tempToColor(temp) {
 }
 
 function tempToEmojis(temp) {
-    if (temp < 61) {  // below 61
-        return "💀"
-    } else if (temp < 64) {  // 61 - 63
-        return "🐧"
-    } else if (temp < 67) {  // 64 - 66
-        return "🥶"
-    } else if (temp < 69) {  // 67 - 69
-        return "😬"
+    // if (temp < 61) {  // below 61
+    //     return "💀"
+    // } else if (temp < 64) {  // 61 - 63
+    //     return "🐧"
+    // } else if (temp < 67) {  // 64 - 66
+    //     return "🥶"
+    // } else if (temp < 69) {  // 67 - 69
+    //     return "😬"
+    if (temp < 69) {
+        return "🧱"
     } else if (temp < 75) {  // 70 - 74
         return "😻"
     } else if (temp < 78) {  // 75 - 77
