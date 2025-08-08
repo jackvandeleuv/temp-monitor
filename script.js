@@ -55,7 +55,9 @@ function updateCurrentTemp(mostRecent) {
     document.getElementById('currentTemp').innerHTML = `Current: ${cToF(mostRecent.temperature, 0)}&#176;`;
     document.getElementById('lastUpdateBox').innerText = `Last Updated: ${minutesAgoLabel(mostRecent.timestamp)}`;
     document.body.style.backgroundColor = tempToColor(cToF(mostRecent.temperature));
-    document.getElementById('emoji').innerHTML = tempToEmojis(cToF(mostRecent.temperature));
+    const emoji = tempToEmojis(cToF(mostRecent.temperature));
+    document.getElementById('emoji').innerHTML = emoji;
+    document.getElementById('headerLink').href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${emoji}</text></svg>`;
 }
 
 function updateHighLowTemps(today) {
