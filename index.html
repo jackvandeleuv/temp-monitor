@@ -28,10 +28,22 @@
     <p class="emoji" id="emoji"></p>
   </div>
   <div class="headerBoxRow">
-    <div class="headerBox" id="currentCubeTemp"></div>
-    <div class="headerBox" id="currentRoomTemp"></div>
-    <div class="headerBox" id="highTemp"></div>
-    <div class="headerBox" id="lowTemp"></div>
+    <div id="currentCubeTempBox" class="headerBox">
+      <p id="currentCubeTempVal" class="headerVal"></p>
+      <p class="headerLabel">Cubicle</p>
+    </div>
+    <div id="currentRoomTempBox" class="headerBox">
+      <p id="currentRoomTempVal" class="headerVal"></p>
+      <p class="headerLabel">Conference Room</p>
+    </div>
+    <div id="highTempBox" class="headerBox">
+      <p id="highTempVal" class="headerVal"></p>
+      <p class="headerLabel">High</p>
+    </div>
+    <div id="lowTempBox" class="headerBox">
+      <p id="lowTempVal" class="headerVal"></p>
+      <p class="headerLabel">Low</p>
+    </div>
   </div>
   <div id="chartWrapper">
     <canvas 

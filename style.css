@@ -16,28 +16,41 @@ body {
   font-family: sans-serif;
 }
 
+p {
+  margin: 0;
+}
+
 h1 {
   margin: 0;
-  font-size: clamp(2rem, 1vw, 3rem);
+  font-size: clamp(2.5rem, 1vw, 3rem);
 }
 
 .headerBoxRow {
   display: flex;
   gap: 5px;
-  margin: 10px 0;
   flex-shrink: 0;
 }
 
 .headerBox {
-  padding: 5px;
+  padding: 8px;
   border: 2px solid black;
   width: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   font-weight: bold;
   border-radius: 10px;
-  font-size: clamp(.5rem, 1.8vw, 2rem);
+  font-size: clamp(.5rem, 2.8vw, 2rem);
+  gap: 2px;
+}
+
+.headerVal {
+  font-size: xx-large;
+}
+
+.headerLabel {
+  font-size: large;
 }
 
 #chartWrapper {

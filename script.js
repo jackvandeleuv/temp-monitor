@@ -49,8 +49,8 @@ function tempToEmojis(temp) {
 function updateCurrentTemp(mostRecentCube, mostRecentRoom) {
     const avgMostRecent = cToF((mostRecentCube.temperature + mostRecentRoom.temperature) / 2);
 
-    document.getElementById('currentCubeTemp').innerHTML = `Cubicle: ${cToF(mostRecentCube.temperature, 0)}&#176;`;
-    document.getElementById('currentRoomTemp').innerHTML = `Conference Room: ${cToF(mostRecentRoom.temperature, 0)}&#176;`;
+    document.getElementById('currentCubeTempVal').innerHTML = `${cToF(mostRecentCube.temperature, 0)}&#176;`;
+    document.getElementById('currentRoomTempVal').innerHTML = `${cToF(mostRecentRoom.temperature, 0)}&#176;`;
 
     document.getElementById('lastUpdateBox').innerText = `Last Updated: ${minutesAgoLabel(mostRecentCube.timestamp)}`;
 
@@ -70,20 +70,14 @@ function updateHighLowTemps(today) {
     const high = cToF(todayCopy[todayCopy.length - 1].temperature, 0);
     const low = cToF(todayCopy[0].temperature, 0);
 
-    const highBox = document.getElementById('highTemp');
-    const lowBox = document.getElementById('lowTemp');
-    
-    highBox.innerHTML = `High: ${high}&#176;`;
-    highBox.style.backgroundColor = tempToColor(high);
-
-    lowBox.innerHTML = `Low: ${low}&#176;`;
-    lowBox.style.backgroundColor = tempToColor(low);
+    document.getElementById('highTempVal').innerHTML = `${high}&#176;`;
+    document.getElementById('lowTempVal').innerHTML = `${low}&#176;`;
 }
 
 function indicateFailure() {
     document.getElementById('emoji').innerHTML = "🙀";
-    document.getElementById('currentCubeTemp').innerHTML = `(BLANK)`;
-    document.getElementById('currentRoomTemp').innerHTML = `(BLANK)`;
+    document.getElementById('currentCubeTempVal').innerHTML = `(BLANK)`;
+    document.getElementById('currentRoomTempVal').innerHTML = `(BLANK)`;
     document.getElementById('highTemp').innerHTML = `(BLANK)`;
     document.getElementById('lowTemp').innerHTML = `(BLANK)`;
 }
