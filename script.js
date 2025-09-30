@@ -11,20 +11,17 @@ function minutesAgoLabel(timestamp) {
     return `${minutes} minutes ago`;
 }
 
-function tempToColor(temp) {
-    const min = 65;   
-    const max = 85;     
-    let ratio = (temp - min) / (max - min);
-    ratio = Math.min(Math.max(ratio, 0), 1);   
+function tempToColor(t) {
+    if (t < 61) return 'oklch(88.2% 0.059 254.128)'; 
+    if (t < 64) return 'oklch(88.2% 0.059 254.128)'; 
+    if (t < 67) return 'oklch(88.2% 0.059 254.128)'; 
+    if (t < 69) return 'oklch(93.2% 0.032 255.585)'; 
 
-    const start = { r: 0xd0, g: 0xe8, b: 0xff };
-    const end   = { r: 0xff, g: 0xeb, b: 0xd2 }; 
+    if (t < 75) return 'oklch(97% 0 0)'; 
+    if (t < 78) return 'oklch(97% 0 0)';
 
-    const r = Math.round(start.r + ratio * (end.r - start.r));
-    const g = Math.round(start.g + ratio * (end.g - start.g));
-    const b = Math.round(start.b + ratio * (end.b - start.b));
-
-    return `rgb(${r}, ${g}, ${b})`;
+    if (t < 81) return 'oklch(88.5% 0.062 18.334)';
+    return 'oklch(80.8% 0.114 19.571)'; 
 }
 
 function tempToEmojis(temp) {
@@ -49,11 +46,19 @@ function tempToEmojis(temp) {
     }
 }
 
-function updateCurrentTemp(mostRecent) {
-    document.getElementById('currentTemp').innerHTML = `Current: ${cToF(mostRecent.temperature, 0)}&#176;`;
-    document.getElementById('lastUpdateBox').innerText = `Last Updated: ${minutesAgoLabel(mostRecent.timestamp)}`;
-    document.body.style.backgroundColor = tempToColor(cToF(mostRecent.temperature));
-    const emoji = tempToEmojis(cToF(mostRecent.temperature));
+function updateCurrentTemp(mostRecentCube, mostRecentRoom) {
+    const avgMostRecent = cToF((mostRecentCube.temperature + mostRecentRoom.temperature) / 2);
+
+    document.getElementById('currentCubeTemp').innerHTML = `Cubicle: ${cToF(mostRecentCube.temperature, 0)}&#176;`;
+    document.getElementById('currentRoomTemp').innerHTML = `Conference Room: ${cToF(mostRecentRoom.temperature, 0)}&#176;`;
+
+    document.getElementById('lastUpdateBox').innerText = `Last Updated: ${minutesAgoLabel(mostRecentCube.timestamp)}`;
+
+    const color = tempToColor(avgMostRecent);
+    document.body.style.backgroundColor = color;
+    document.getElementById('chart').style.backgroundColor = color;
+
+    const emoji = tempToEmojis(avgMostRecent);
     document.getElementById('emoji').innerHTML = emoji;
     document.getElementById('headerLink').href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${emoji}</text></svg>`;
 }
@@ -77,17 +82,103 @@ function updateHighLowTemps(today) {
 
 function indicateFailure() {
     document.getElementById('emoji').innerHTML = "🙀";
-
-    document.getElementById('currentTemp').innerHTML = `(BLANK)`;
+    document.getElementById('currentCubeTemp').innerHTML = `(BLANK)`;
+    document.getElementById('currentRoomTemp').innerHTML = `(BLANK)`;
     document.getElementById('highTemp').innerHTML = `(BLANK)`;
     document.getElementById('lowTemp').innerHTML = `(BLANK)`;
 }
 
-(async () => {
-    ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6aWd2cWZhZHd1a2Rrc3NvY2ZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5ODA2MTYsImV4cCI6MjA2NDU1NjYxNn0.5txdBRGZcwFNndwGwV0jsRY5C1MvdArypPpCg0QOxTU';
+const makeChart = (ctx, labels, cubeData, cubeLabel, cubeColor, roomData, roomLabel, roomColor) => {
+    return new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: cubeLabel,
+                    data: cubeData,
+                    yAxisID: 'y',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    borderColor: cubeColor,
+                    backgroundColor: cubeColor
+                },
+                {
+                    label: roomLabel,
+                    data: roomData,
+                    yAxisID: 'y',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    borderColor: roomColor,
+                    backgroundColor: roomColor
+                },
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: null
+            },
+            plugins: {
+                tooltip: {
+                    enabled: false
+                },
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: {
+                            size: 14
+                        },
+                        color: 'black'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: {
+                            size: 24
+                        },
+                        color: 'black'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Time',
+                        font: {
+                            size: 24
+                        },
+                        color: 'black'
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    position: 'left',
+                    ticks: {
+                        font: {
+                            size: 24
+                        },
+                        color: 'black'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Temperature (°F)',
+                        font: {
+                            size: 24
+                        },
+                        color: 'black'
+                    }
+                }
+            },
+            events: []
+        }
+    });
+}
 
-    const ctx = document.getElementById('chart').getContext('2d');
-    let chart;
+async function main() {
+    ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6aWd2cWZhZHd1a2Rrc3NvY2ZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5ODA2MTYsImV4cCI6MjA2NDU1NjYxNn0.5txdBRGZcwFNndwGwV0jsRY5C1MvdArypPpCg0QOxTU';
 
     try {
         const RPC_URL = `https://pzigvqfadwukdkssocfh.supabase.co/rest/v1/rpc/readings_agg`;
@@ -97,8 +188,8 @@ function indicateFailure() {
             'Content-Type': 'application/json',
         };
         const body = JSON.stringify({
-            _bucket_minutes: 20,
-            _lookback_hours: 24
+            _start_time: Math.round((Date.now() / 1000) - 3600 * 24),
+            _end_time:   Math.round(Date.now() / 1000)
         });
 
         const response = await fetch(RPC_URL, {
@@ -107,10 +198,12 @@ function indicateFailure() {
             body
         });
         const responseJSON = await response.json();
+
         const data = responseJSON.map((obj) => (
             {
                 temperature: obj.avg_temperature, 
-                timestamp: Math.round(Number(new Date(obj.bucket_start)) / 1000)
+                timestamp: Math.round(Number(new Date(obj.bucket_start)) / 1000),
+                monitor_id: obj.monitor_id
             }
         ));
 
@@ -118,110 +211,49 @@ function indicateFailure() {
 
         data.sort((a, b) => a.timestamp - b.timestamp);
 
-        const mostRecent = data[data.length - 1];
-        const now = Math.round(Date.now() / 1000);
+        const CUBE_ID = 'D4:0E:86:46:5C:60';
+        const ROOM_ID = 'D4:0E:86:46:03:40';
 
-        const secondDiff = now  - mostRecent.timestamp;
+        const cubeData = data.filter((x) => x.monitor_id === CUBE_ID);
+        const roomData = data.filter((x) => x.monitor_id === ROOM_ID);
 
-        if (secondDiff > 3600) {
-            indicateFailure();
-            throw new Error('The temperature tracker is experiencing an outage. Please do not panic.');
-        }
+        const mostRecentCube = cubeData[cubeData.length - 1];
+        const mostRecentRoom = roomData[roomData.length - 1];
 
-        const startToday = now - 24 * 3600;
-        const today = data.filter(d => d.timestamp >= startToday);
+        updateCurrentTemp(mostRecentCube, mostRecentRoom);
+        updateHighLowTemps(data);
 
-        updateCurrentTemp(mostRecent);
-        updateHighLowTemps(today);
+        const cubeTemps = cubeData.map((c) => cToF(c.temperature));
+        const roomTemps = roomData.map((c) => cToF(c.temperature));
 
-        const todayTemp = today.map((c) => cToF(c.temperature));
-
-        const labels = today.map((d) => (
+        const TIME_BUCKET = 20 * 60;
+        const labels = cubeData.map((d) => (
             new Date(
-                Math.floor(d.timestamp / 1800) * 1800 * 1000
+                Math.floor(d.timestamp / TIME_BUCKET) * TIME_BUCKET * 1000
             ).toLocaleTimeString(
                 [], { hour: '2-digit', minute: '2-digit' }
             )
         ));
 
-        if (chart) chart.destroy();
+        const ctx = document.getElementById('chart').getContext('2d');
 
-        chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [
-                {
-                    label: 'Temperature (°F)',
-                    data: todayTemp,
-                    yAxisID: 'y',
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.3,
-                    borderColor: 'black'
-                }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                mode: null
-                },
-                plugins: {
-                tooltip: {
-                    enabled: false
-                },
-                legend: {
-                    position: 'top',
-                    labels: {
-                    font: {
-                        size: 24
-                    }
-                    }
-                }
-                },
-                scales: {
-                x: {
-                    ticks: {
-                    font: {
-                        size: 24
-                    }
-                    },
-                    title: {
-                    display: true,
-                    text: 'Time',
-                    font: {
-                        size: 24
-                    }
-                    }
-                },
-                y: {
-                    type: 'linear',
-                    position: 'left',
-                    ticks: {
-                    font: {
-                        size: 24
-                    }
-                    },
-                    title: {
-                    display: true,
-                    text: 'Temperature',
-                    font: {
-                        size: 24
-                    }
-                    }
-                }
-                },
-                events: []
-            }
-        });
-
+        return makeChart(
+            ctx, 
+            labels,
+            cubeTemps, 
+            'Cubicle', 
+            'oklch(44.6% 0.043 257.281)', 
+            roomTemps, 
+            'Conference Room', 
+            'oklch(51.1% 0.096 186.391)'
+        )
     } catch (err) {
         document.body.insertAdjacentHTML(
             'beforeend',
             `<p style="color:red;margin-top:1rem;">${err.message}</p>`
         );
         console.error(err);
-        }
-}) ();
+    }
+}
+
+main();

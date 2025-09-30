@@ -28,12 +28,18 @@
     <p class="emoji" id="emoji"></p>
   </div>
   <div class="headerBoxRow">
-    <div class="headerBox" id="currentTemp"></div>
+    <div class="headerBox" id="currentCubeTemp"></div>
+    <div class="headerBox" id="currentRoomTemp"></div>
     <div class="headerBox" id="highTemp"></div>
     <div class="headerBox" id="lowTemp"></div>
   </div>
   <div id="chartWrapper">
-    <canvas id="chart"></canvas>
+    <canvas 
+      id="chart"
+      style="
+        background-color: oklch(97% 0 0);
+      "
+    ></canvas>
   </div>
   <h4 class="lastUpdateBox" id="lastUpdateBox">Last update:</h4>
   <script src="script.js"></script>
