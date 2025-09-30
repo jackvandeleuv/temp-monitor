@@ -130,7 +130,7 @@ const makeChart = (ctx, labels, cubeData, cubeLabel, cubeColor, roomData, roomLa
                     position: 'top',
                     labels: {
                         font: {
-                            size: 14
+                            size: 18
                         },
                         color: 'black'
                     }
@@ -197,6 +197,8 @@ async function main() {
             headers,
             body
         });
+        if (!response.ok) throw new Error('Could not fetch temperature data.');
+
         const responseJSON = await response.json();
 
         const data = responseJSON.map((obj) => (
