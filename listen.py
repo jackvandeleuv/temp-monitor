@@ -54,17 +54,36 @@ def decode(encoded: bytes):
         log_failure(e, "decode")
 
 def detect(device, adv):
+    global cube_measurements, conference_room_measurements
+    FRACTION_TO_POST = 20
+    
     try:
-        DEVICE_ID = os.environ['DEVICE_ID']
-        if DEVICE_ID in str(device):
-            encoded = adv.manufacturer_data[1]
-            temp, humidity = decode(encoded)
+        CUBE_DEVICE_ID = os.environ['CUBE_DEVICE_ID']
+        CONFERENCE_ROOM_DEVICE_ID = os.environ['CONFERENCE_ROOM_DEVICE_ID']
 
-            post({
-                'temperature': temp,
-                'humidity': humidity,
-                'timestamp': time.time()
-            })
+        if device.address not in (CUBE_DEVICE_ID, CONFERENCE_ROOM_DEVICE_ID):
+            return 
+
+        if device.address == CUBE_DEVICE_ID:
+            cube_measurements += 1
+            if cube_measurements % FRACTION_TO_POST != 0:
+                return
+            
+        if device.address == CONFERENCE_ROOM_DEVICE_ID:
+            conference_room_measurements += 1
+            if conference_room_measurements % FRACTION_TO_POST != 0:
+                return
+
+        encoded = adv.manufacturer_data[1]  # Key in the dict is 1.
+        temp, humidity = decode(encoded)
+
+        post({
+            'temperature': temp,
+            'humidity': humidity,
+            'timestamp': time.time(),
+            'monitor_id': device.address
+        })
+
     except Exception as e:
         log_failure(e, "detect")
 
@@ -77,5 +96,7 @@ async def main():
     finally:
         await scanner.stop()
 
+cube_measurements = 0
+conference_room_measurements = 0
 if __name__ == "__main__":
     asyncio.run(main())
