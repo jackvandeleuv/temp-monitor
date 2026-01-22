@@ -54,12 +54,29 @@ function tempToEmojis(temp) {
 }
 
 function updateCurrentTemp(mostRecentCube, mostRecentRoom) {
-    const avgMostRecent = cToF((mostRecentCube.temperature + mostRecentRoom.temperature) / 2);
+    const cubeTemp = mostRecentCube?.temperature;
+    const roomTemp = mostRecentRoom?.temperature;
 
-    document.getElementById('currentCubeTempVal').innerHTML = `${cToF(mostRecentCube.temperature, 0)}&#176;`;
-    document.getElementById('currentRoomTempVal').innerHTML = `${cToF(mostRecentRoom.temperature, 0)}&#176;`;
+    // Calculate average from available data
+    let avgMostRecent;
+    if (cubeTemp != null && roomTemp != null) {
+        avgMostRecent = cToF((cubeTemp + roomTemp) / 2);
+    } else if (cubeTemp != null) {
+        avgMostRecent = cToF(cubeTemp);
+    } else if (roomTemp != null) {
+        avgMostRecent = cToF(roomTemp);
+    } else {
+        avgMostRecent = 70; // fallback
+    }
 
-    document.getElementById('lastUpdateBox').innerText = `Last Updated: ${minutesAgoLabel(mostRecentCube.timestamp)}`;
+    document.getElementById('currentCubeTempVal').innerHTML = cubeTemp != null
+        ? `${cToF(cubeTemp, 0)}&#176;` : '--';
+    document.getElementById('currentRoomTempVal').innerHTML = roomTemp != null
+        ? `${cToF(roomTemp, 0)}&#176;` : '--';
+
+    const timestamp = mostRecentCube?.timestamp || mostRecentRoom?.timestamp;
+    document.getElementById('lastUpdateBox').innerText = timestamp
+        ? `Last Updated: ${minutesAgoLabel(timestamp)}` : 'Last Updated: --';
 
     const color = tempToColor(avgMostRecent);
     document.body.style.backgroundColor = color;
@@ -71,6 +88,12 @@ function updateCurrentTemp(mostRecentCube, mostRecentRoom) {
 }
 
 function updateHighLowTemps(today) {
+    if (!today || today.length === 0) {
+        document.getElementById('highTempVal').innerHTML = '--';
+        document.getElementById('lowTempVal').innerHTML = '--';
+        return;
+    }
+
     const todayCopy = [...today];
     todayCopy.sort((a, b) => a.temperature - b.temperature);
 
@@ -164,27 +187,27 @@ function getScales(showTemp, showHumidity) {
             type: 'linear',
             position: 'left',
             ticks: { font: { size: 10 }, color: axisColor },
-            title: { display: true, text: '°F', font: { size: 10 }, color: axisColor }
+            title: { display: true, text: 'Temperature (°F)', font: { size: 10 }, color: axisColor }
         };
     } else if (showHumidity && !showTemp) {
         scales.y = {
             type: 'linear',
             position: 'left',
             ticks: { font: { size: 10 }, color: axisColor },
-            title: { display: true, text: '%', font: { size: 10 }, color: axisColor }
+            title: { display: true, text: 'Humidity (%)', font: { size: 10 }, color: axisColor }
         };
     } else if (showTemp && showHumidity) {
         scales.y = {
             type: 'linear',
             position: 'left',
             ticks: { font: { size: 10 }, color: axisColor },
-            title: { display: true, text: '°F', font: { size: 10 }, color: axisColor }
+            title: { display: true, text: 'Temperature (°F)', font: { size: 10 }, color: axisColor }
         };
         scales.y1 = {
             type: 'linear',
             position: 'right',
             ticks: { font: { size: 10 }, color: axisColor },
-            title: { display: true, text: '%', font: { size: 10 }, color: axisColor },
+            title: { display: true, text: 'Humidity (%)', font: { size: 10 }, color: axisColor },
             grid: { drawOnChartArea: false }
         };
     }
@@ -259,10 +282,13 @@ async function fetchData(hours) {
 
     const responseJSON = await response.json();
 
+    // Keep sums and counts for proper weighted aggregation later
     const data = responseJSON.map((obj) => (
         {
-            temperature: obj.sum_temperature / obj.temperature_obs,
-            humidity: obj.sum_humidity / obj.humidity_obs,
+            sum_temperature: obj.sum_temperature,
+            sum_humidity: obj.sum_humidity,
+            temperature_obs: obj.temperature_obs,
+            humidity_obs: obj.humidity_obs,
             timestamp: Math.round(Number(new Date(obj.bucket_start)) / 1000),
             monitor_id: obj.monitor_id
         }
@@ -274,36 +300,145 @@ async function fetchData(hours) {
     return data;
 }
 
-function processData(data, hours) {
+// Aggregate data into larger time buckets using weighted averages
+function aggregateData(data, bucketSeconds) {
+    const buckets = new Map();
+
+    for (const row of data) {
+        const bucketKey = `${row.monitor_id}_${Math.floor(row.timestamp / bucketSeconds) * bucketSeconds}`;
+
+        if (!buckets.has(bucketKey)) {
+            buckets.set(bucketKey, {
+                sum_temperature: 0,
+                sum_humidity: 0,
+                temperature_obs: 0,
+                humidity_obs: 0,
+                timestamp: Math.floor(row.timestamp / bucketSeconds) * bucketSeconds,
+                monitor_id: row.monitor_id
+            });
+        }
+
+        const bucket = buckets.get(bucketKey);
+        bucket.sum_temperature += row.sum_temperature;
+        bucket.sum_humidity += row.sum_humidity;
+        bucket.temperature_obs += row.temperature_obs;
+        bucket.humidity_obs += row.humidity_obs;
+    }
+
+    // Convert to array and calculate final averages
+    return Array.from(buckets.values())
+        .map((b) => ({
+            temperature: b.sum_temperature / b.temperature_obs,
+            humidity: b.sum_humidity / b.humidity_obs,
+            timestamp: b.timestamp,
+            monitor_id: b.monitor_id
+        }))
+        .sort((a, b) => a.timestamp - b.timestamp);
+}
+
+// Time bucket constants (in seconds)
+const BUCKET = {
+    MINUTES_20: 20 * 60,
+    HOURLY: 60 * 60,
+    EVERY_3_HOURS: 3 * 60 * 60,
+    EVERY_6_HOURS: 6 * 60 * 60,
+    DAILY: 24 * 60 * 60,
+    WEEKLY: 7 * 24 * 60 * 60
+};
+
+function formatTimestamp(timestamp, hours) {
+    const date = new Date(timestamp * 1000);
+
+    if (hours <= 24) {
+        // Show time: "2:20 PM"
+        return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    } else if (hours <= 72) {
+        // Show day + hour: "Mon 2 PM"
+        const day = date.toLocaleDateString([], { weekday: 'short' });
+        const hour = date.toLocaleTimeString([], { hour: 'numeric' });
+        return `${day} ${hour}`;
+    } else if (hours <= 168) {
+        // Show day + hour: "Mon 2 PM"
+        const day = date.toLocaleDateString([], { weekday: 'short' });
+        const hour = date.toLocaleTimeString([], { hour: 'numeric' });
+        return `${day} ${hour}`;
+    } else if (hours <= 720) {
+        // Show date: "Jan 15"
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    } else if (hours <= 2160) {
+        // Show date: "Jan 15"
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    } else {
+        // Show week: "Jan 15"
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+}
+
+function getAggregationBucket(hours) {
+    if (hours <= 24) {
+        return BUCKET.MINUTES_20;    // ~72 points
+    } else if (hours <= 72) {
+        return BUCKET.HOURLY;        // ~72 points
+    } else if (hours <= 168) {
+        return BUCKET.EVERY_3_HOURS; // ~56 points
+    } else if (hours <= 720) {
+        return BUCKET.DAILY;         // ~30 points
+    } else if (hours <= 2160) {
+        return BUCKET.DAILY;         // ~90 points
+    } else {
+        return BUCKET.WEEKLY;        // ~52 points
+    }
+}
+
+function processData(rawData, hours) {
+    const bucket = getAggregationBucket(hours);
+
+    // Calculate high/low from finest granularity data (before aggregation)
+    // to preserve true extremes
+    const fineData = aggregateData(rawData, BUCKET.MINUTES_20);
+    updateHighLowTemps(fineData);
+
+    // Aggregate data with proper weighted averages for chart display
+    const data = aggregateData(rawData, bucket);
+
     const cubeData = data.filter((x) => x.monitor_id === CUBE_ID);
     const roomData = data.filter((x) => x.monitor_id === ROOM_ID);
 
+    // For current temp, use most recent value
     const mostRecentCube = cubeData[cubeData.length - 1];
     const mostRecentRoom = roomData[roomData.length - 1];
 
     updateCurrentTemp(mostRecentCube, mostRecentRoom);
-    updateHighLowTemps(data);
 
-    chartData.cubeTemps = cubeData.map((c) => cToF(c.temperature));
-    chartData.roomTemps = roomData.map((c) => cToF(c.temperature));
-    chartData.cubeHumidity = cubeData.map((c) => c.humidity);
-    chartData.roomHumidity = roomData.map((c) => c.humidity);
+    // Create unified timestamp list from both datasets
+    const allTimestamps = [...new Set([
+        ...cubeData.map(d => d.timestamp),
+        ...roomData.map(d => d.timestamp)
+    ])].sort((a, b) => a - b);
 
-    const TIME_BUCKET = hours <= 24 ? 20 * 60
-        : hours <= 72 ? 60 * 60
-        : hours <= 720 ? 3 * 60 * 60
-        : 24 * 60 * 60;
-    const formatOptions = hours <= 24
-        ? { hour: '2-digit', minute: '2-digit' }
-        : hours <= 720
-        ? { month: 'short', day: 'numeric', hour: '2-digit' }
-        : { month: 'short', day: 'numeric' };
+    // Create lookup maps for quick access
+    const cubeByTime = new Map(cubeData.map(d => [d.timestamp, d]));
+    const roomByTime = new Map(roomData.map(d => [d.timestamp, d]));
 
-    const labels = cubeData.map((d) => (
-        new Date(
-            Math.floor(d.timestamp / TIME_BUCKET) * TIME_BUCKET * 1000
-        ).toLocaleTimeString([], formatOptions)
-    ));
+    // Align data to unified timestamps (null for missing points)
+    chartData.cubeTemps = allTimestamps.map(t => {
+        const d = cubeByTime.get(t);
+        return d ? cToF(d.temperature) : null;
+    });
+    chartData.roomTemps = allTimestamps.map(t => {
+        const d = roomByTime.get(t);
+        return d ? cToF(d.temperature) : null;
+    });
+    chartData.cubeHumidity = allTimestamps.map(t => {
+        const d = cubeByTime.get(t);
+        return d ? d.humidity : null;
+    });
+    chartData.roomHumidity = allTimestamps.map(t => {
+        const d = roomByTime.get(t);
+        return d ? d.humidity : null;
+    });
+
+    const labels = allTimestamps.map(t => formatTimestamp(t, hours));
 
     return labels;
 }
