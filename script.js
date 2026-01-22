@@ -261,8 +261,8 @@ async function fetchData(hours) {
 
     const data = responseJSON.map((obj) => (
         {
-            temperature: obj.avg_temperature,
-            humidity: obj.avg_humidity,
+            temperature: obj.sum_temperature / obj.temperature_obs,
+            humidity: obj.sum_humidity / obj.humidity_obs,
             timestamp: Math.round(Number(new Date(obj.bucket_start)) / 1000),
             monitor_id: obj.monitor_id
         }
