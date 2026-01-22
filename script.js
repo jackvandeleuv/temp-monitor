@@ -1,3 +1,10 @@
+let chartInstance = null;
+let chartData = {};
+
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6aWd2cWZhZHd1a2Rrc3NvY2ZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5ODA2MTYsImV4cCI6MjA2NDU1NjYxNn0.5txdBRGZcwFNndwGwV0jsRY5C1MvdArypPpCg0QOxTU';
+const CUBE_ID = 'D4:0E:86:46:5C:60';
+const ROOM_ID = 'D4:0E:86:46:03:40';
+
 function cToF(c, decimals=1) {
     return (c * (9 / 5) + 32).toFixed(decimals);
 }
@@ -82,167 +89,234 @@ function indicateFailure() {
     document.getElementById('lowTemp').innerHTML = `(BLANK)`;
 }
 
-const makeChart = (ctx, labels, cubeData, cubeLabel, cubeColor, roomData, roomLabel, roomColor) => {
+function getDatasets(showTemp, showHumidity, showCubicle, showConfRoom) {
+    const datasets = [];
+    const cubeTempColor = 'oklch(45% 0.12 255)';
+    const roomTempColor = 'oklch(65% 0.10 255)';
+    const cubeHumidityColor = 'oklch(45% 0.12 145)';
+    const roomHumidityColor = 'oklch(65% 0.10 145)';
+
+    if (showTemp && showCubicle) {
+        datasets.push({
+            label: 'Cubicle Temp',
+            data: chartData.cubeTemps,
+            yAxisID: 'y',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3,
+            borderColor: cubeTempColor,
+            backgroundColor: cubeTempColor
+        });
+    }
+    if (showTemp && showConfRoom) {
+        datasets.push({
+            label: 'Conf Room Temp',
+            data: chartData.roomTemps,
+            yAxisID: 'y',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3,
+            borderColor: roomTempColor,
+            backgroundColor: roomTempColor
+        });
+    }
+
+    if (showHumidity && showCubicle) {
+        datasets.push({
+            label: 'Cubicle Humidity',
+            data: chartData.cubeHumidity,
+            yAxisID: showTemp ? 'y1' : 'y',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3,
+            borderColor: cubeHumidityColor,
+            backgroundColor: cubeHumidityColor
+        });
+    }
+    if (showHumidity && showConfRoom) {
+        datasets.push({
+            label: 'Conf Room Humidity',
+            data: chartData.roomHumidity,
+            yAxisID: showTemp ? 'y1' : 'y',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3,
+            borderColor: roomHumidityColor,
+            backgroundColor: roomHumidityColor
+        });
+    }
+
+    return datasets;
+}
+
+function getScales(showTemp, showHumidity) {
+    const scales = {
+        x: {
+            ticks: { font: { size: 24 }, color: 'black' },
+            title: { display: true, text: 'Time', font: { size: 24 }, color: 'black' }
+        }
+    };
+
+    if (showTemp && !showHumidity) {
+        scales.y = {
+            type: 'linear',
+            position: 'left',
+            ticks: { font: { size: 24 }, color: 'black' },
+            title: { display: true, text: 'Temperature (°F)', font: { size: 24 }, color: 'black' }
+        };
+    } else if (showHumidity && !showTemp) {
+        scales.y = {
+            type: 'linear',
+            position: 'left',
+            ticks: { font: { size: 24 }, color: 'black' },
+            title: { display: true, text: 'Humidity (%)', font: { size: 24 }, color: 'black' }
+        };
+    } else if (showTemp && showHumidity) {
+        scales.y = {
+            type: 'linear',
+            position: 'left',
+            ticks: { font: { size: 24 }, color: 'black' },
+            title: { display: true, text: 'Temperature (°F)', font: { size: 24 }, color: 'black' }
+        };
+        scales.y1 = {
+            type: 'linear',
+            position: 'right',
+            ticks: { font: { size: 24 }, color: 'black' },
+            title: { display: true, text: 'Humidity (%)', font: { size: 24 }, color: 'black' },
+            grid: { drawOnChartArea: false }
+        };
+    }
+
+    return scales;
+}
+
+function getChartOptions() {
+    return {
+        showTemp: document.getElementById('tempCheckbox').checked,
+        showHumidity: document.getElementById('humidityCheckbox').checked,
+        showCubicle: document.getElementById('cubicleCheckbox').checked,
+        showConfRoom: document.getElementById('confRoomCheckbox').checked
+    };
+}
+
+function updateChart() {
+    if (!chartInstance) return;
+    const { showTemp, showHumidity, showCubicle, showConfRoom } = getChartOptions();
+    chartInstance.data.datasets = getDatasets(showTemp, showHumidity, showCubicle, showConfRoom);
+    chartInstance.options.scales = getScales(showTemp, showHumidity);
+    chartInstance.update();
+}
+
+const makeChart = (ctx, labels, showTemp, showHumidity, showCubicle, showConfRoom) => {
     return new Chart(ctx, {
         type: 'line',
         data: {
             labels,
-            datasets: [
-                {
-                    label: cubeLabel,
-                    data: cubeData,
-                    yAxisID: 'y',
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.3,
-                    borderColor: cubeColor,
-                    backgroundColor: cubeColor
-                },
-                {
-                    label: roomLabel,
-                    data: roomData,
-                    yAxisID: 'y',
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.3,
-                    borderColor: roomColor,
-                    backgroundColor: roomColor
-                },
-            ]
+            datasets: getDatasets(showTemp, showHumidity, showCubicle, showConfRoom)
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: {
-                mode: null
-            },
+            interaction: { mode: null },
             plugins: {
-                tooltip: {
-                    enabled: false
-                },
+                tooltip: { enabled: false },
                 legend: {
                     position: 'top',
-                    labels: {
-                        font: {
-                            size: 18
-                        },
-                        color: 'black'
-                    }
+                    labels: { font: { size: 18 }, color: 'black' }
                 }
             },
-            scales: {
-                x: {
-                    ticks: {
-                        font: {
-                            size: 24
-                        },
-                        color: 'black'
-                    },
-                    title: {
-                        display: true,
-                        text: 'Time',
-                        font: {
-                            size: 24
-                        },
-                        color: 'black'
-                    }
-                },
-                y: {
-                    type: 'linear',
-                    position: 'left',
-                    ticks: {
-                        font: {
-                            size: 24
-                        },
-                        color: 'black'
-                    },
-                    title: {
-                        display: true,
-                        text: 'Temperature (°F)',
-                        font: {
-                            size: 24
-                        },
-                        color: 'black'
-                    }
-                }
-            },
+            scales: getScales(showTemp, showHumidity),
             events: []
         }
     });
 }
 
-async function main() {
-    ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6aWd2cWZhZHd1a2Rrc3NvY2ZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5ODA2MTYsImV4cCI6MjA2NDU1NjYxNn0.5txdBRGZcwFNndwGwV0jsRY5C1MvdArypPpCg0QOxTU';
+async function fetchData(hours) {
+    const RPC_URL = `https://pzigvqfadwukdkssocfh.supabase.co/rest/v1/rpc/readings_agg_humidity`;
+    const headers = {
+        apikey: ANON_KEY,
+        Authorization: `Bearer ${ANON_KEY}`,
+        'Content-Type': 'application/json',
+    };
+    const body = JSON.stringify({
+        _start_time: Math.round((Date.now() / 1000) - 3600 * hours),
+        _end_time:   Math.round(Date.now() / 1000)
+    });
 
+    const response = await fetch(RPC_URL, {
+        method: 'POST',
+        headers,
+        body
+    });
+    if (!response.ok) throw new Error('Could not fetch temperature data.');
+
+    const responseJSON = await response.json();
+
+    const data = responseJSON.map((obj) => (
+        {
+            temperature: obj.avg_temperature,
+            humidity: obj.avg_humidity,
+            timestamp: Math.round(Number(new Date(obj.bucket_start)) / 1000),
+            monitor_id: obj.monitor_id
+        }
+    ));
+
+    if (data.length === 0) throw new Error('The temperature tracker is experiencing an outage. Please do not panic.');
+
+    data.sort((a, b) => a.timestamp - b.timestamp);
+    return data;
+}
+
+function processData(data, hours) {
+    const cubeData = data.filter((x) => x.monitor_id === CUBE_ID);
+    const roomData = data.filter((x) => x.monitor_id === ROOM_ID);
+
+    const mostRecentCube = cubeData[cubeData.length - 1];
+    const mostRecentRoom = roomData[roomData.length - 1];
+
+    updateCurrentTemp(mostRecentCube, mostRecentRoom);
+    updateHighLowTemps(data);
+
+    chartData.cubeTemps = cubeData.map((c) => cToF(c.temperature));
+    chartData.roomTemps = roomData.map((c) => cToF(c.temperature));
+    chartData.cubeHumidity = cubeData.map((c) => c.humidity);
+    chartData.roomHumidity = roomData.map((c) => c.humidity);
+
+    const TIME_BUCKET = hours <= 24 ? 20 * 60
+        : hours <= 72 ? 60 * 60
+        : hours <= 720 ? 3 * 60 * 60
+        : 24 * 60 * 60;
+    const formatOptions = hours <= 24
+        ? { hour: '2-digit', minute: '2-digit' }
+        : hours <= 720
+        ? { month: 'short', day: 'numeric', hour: '2-digit' }
+        : { month: 'short', day: 'numeric' };
+
+    const labels = cubeData.map((d) => (
+        new Date(
+            Math.floor(d.timestamp / TIME_BUCKET) * TIME_BUCKET * 1000
+        ).toLocaleTimeString([], formatOptions)
+    ));
+
+    return labels;
+}
+
+async function loadData(hours) {
     try {
-        const RPC_URL = `https://pzigvqfadwukdkssocfh.supabase.co/rest/v1/rpc/readings_agg`;
-        const headers = {
-            apikey: ANON_KEY,
-            Authorization: `Bearer ${ANON_KEY}`,
-            'Content-Type': 'application/json',
-        };
-        const body = JSON.stringify({
-            _start_time: Math.round((Date.now() / 1000) - 3600 * 24),
-            _end_time:   Math.round(Date.now() / 1000)
-        });
+        const data = await fetchData(hours);
+        const labels = processData(data, hours);
 
-        const response = await fetch(RPC_URL, {
-            method: 'POST',
-            headers,
-            body
-        });
-        if (!response.ok) throw new Error('Could not fetch temperature data.');
+        const { showTemp, showHumidity, showCubicle, showConfRoom } = getChartOptions();
 
-        const responseJSON = await response.json();
-
-        const data = responseJSON.map((obj) => (
-            {
-                temperature: obj.avg_temperature, 
-                timestamp: Math.round(Number(new Date(obj.bucket_start)) / 1000),
-                monitor_id: obj.monitor_id
-            }
-        ));
-
-        if (data.length === 0) throw new Error('The temperature tracker is experiencing an outage. Please do not panic.');
-
-        data.sort((a, b) => a.timestamp - b.timestamp);
-
-        const CUBE_ID = 'D4:0E:86:46:5C:60';
-        const ROOM_ID = 'D4:0E:86:46:03:40';
-
-        const cubeData = data.filter((x) => x.monitor_id === CUBE_ID);
-        const roomData = data.filter((x) => x.monitor_id === ROOM_ID);
-
-        const mostRecentCube = cubeData[cubeData.length - 1];
-        const mostRecentRoom = roomData[roomData.length - 1];
-
-        updateCurrentTemp(mostRecentCube, mostRecentRoom);
-        updateHighLowTemps(data);
-
-        const cubeTemps = cubeData.map((c) => cToF(c.temperature));
-        const roomTemps = roomData.map((c) => cToF(c.temperature));
-
-        const TIME_BUCKET = 20 * 60;
-        const labels = cubeData.map((d) => (
-            new Date(
-                Math.floor(d.timestamp / TIME_BUCKET) * TIME_BUCKET * 1000
-            ).toLocaleTimeString(
-                [], { hour: '2-digit', minute: '2-digit' }
-            )
-        ));
-
-        const ctx = document.getElementById('chart').getContext('2d');
-
-        return makeChart(
-            ctx, 
-            labels,
-            cubeTemps, 
-            'Cubicle', 
-            'oklch(44.6% 0.043 257.281)', 
-            roomTemps, 
-            'Conference Room', 
-            'oklch(51.1% 0.096 186.391)'
-        )
+        if (chartInstance) {
+            chartInstance.data.labels = labels;
+            chartInstance.data.datasets = getDatasets(showTemp, showHumidity, showCubicle, showConfRoom);
+            chartInstance.options.scales = getScales(showTemp, showHumidity);
+            chartInstance.update();
+        } else {
+            const ctx = document.getElementById('chart').getContext('2d');
+            chartInstance = makeChart(ctx, labels, showTemp, showHumidity, showCubicle, showConfRoom);
+        }
     } catch (err) {
         document.body.insertAdjacentHTML(
             'beforeend',
@@ -250,6 +324,18 @@ async function main() {
         );
         console.error(err);
     }
+}
+
+async function main() {
+    const dateRangeSelect = document.getElementById('dateRange');
+
+    document.getElementById('tempCheckbox').addEventListener('change', updateChart);
+    document.getElementById('humidityCheckbox').addEventListener('change', updateChart);
+    document.getElementById('cubicleCheckbox').addEventListener('change', updateChart);
+    document.getElementById('confRoomCheckbox').addEventListener('change', updateChart);
+    dateRangeSelect.addEventListener('change', () => loadData(Number(dateRangeSelect.value)));
+
+    await loadData(Number(dateRangeSelect.value));
 }
 
 main();

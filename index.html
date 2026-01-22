@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Erieview Temperature</title>
 
   <!-- Google tag (gtag.js) -->
@@ -44,6 +45,31 @@
       <p id="lowTempVal" class="headerVal"></p>
       <p class="headerLabel">Low</p>
     </div>
+  </div>
+  <div class="toggleContainer">
+    <label class="checkboxLabel">
+      <input type="checkbox" id="tempCheckbox" checked>
+      Temperature
+    </label>
+    <label class="checkboxLabel">
+      <input type="checkbox" id="humidityCheckbox">
+      Humidity
+    </label>
+    <span class="divider"></span>
+    <label class="checkboxLabel">
+      <input type="checkbox" id="cubicleCheckbox" checked>
+      Cubicle
+    </label>
+    <label class="checkboxLabel">
+      <input type="checkbox" id="confRoomCheckbox" checked>
+      Conf Room
+    </label>
+    <select id="dateRange">
+      <option value="24">Last 24 hours</option>
+      <option value="72">Last 3 days</option>
+      <option value="168">Last 7 days</option>
+      <option value="720">Last 30 days</option>
+    </select>
   </div>
   <div id="chartWrapper">
     <canvas 
