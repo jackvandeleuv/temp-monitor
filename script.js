@@ -91,10 +91,12 @@ function indicateFailure() {
 
 function getDatasets(showTemp, showHumidity, showCubicle, showConfRoom) {
     const datasets = [];
-    const cubeTempColor = 'oklch(45% 0.12 255)';
-    const roomTempColor = 'oklch(65% 0.10 255)';
-    const cubeHumidityColor = 'oklch(45% 0.12 145)';
-    const roomHumidityColor = 'oklch(65% 0.10 145)';
+    // Tailwind violet for temperature (neutral, not hot/cold associated)
+    const cubeTempColor = '#7c3aed';      // violet-600
+    const roomTempColor = '#a78bfa';      // violet-400
+    // Tailwind sky for humidity
+    const cubeHumidityColor = '#0284c7';  // sky-600
+    const roomHumidityColor = '#38bdf8';  // sky-400
 
     if (showTemp && showCubicle) {
         datasets.push({
@@ -150,10 +152,10 @@ function getDatasets(showTemp, showHumidity, showCubicle, showConfRoom) {
 }
 
 function getScales(showTemp, showHumidity) {
+    const axisColor = '#64748b'; // slate-500
     const scales = {
         x: {
-            ticks: { font: { size: 24 }, color: 'black' },
-            title: { display: true, text: 'Time', font: { size: 24 }, color: 'black' }
+            ticks: { font: { size: 10 }, color: axisColor }
         }
     };
 
@@ -161,28 +163,28 @@ function getScales(showTemp, showHumidity) {
         scales.y = {
             type: 'linear',
             position: 'left',
-            ticks: { font: { size: 24 }, color: 'black' },
-            title: { display: true, text: 'Temperature (°F)', font: { size: 24 }, color: 'black' }
+            ticks: { font: { size: 10 }, color: axisColor },
+            title: { display: true, text: '°F', font: { size: 10 }, color: axisColor }
         };
     } else if (showHumidity && !showTemp) {
         scales.y = {
             type: 'linear',
             position: 'left',
-            ticks: { font: { size: 24 }, color: 'black' },
-            title: { display: true, text: 'Humidity (%)', font: { size: 24 }, color: 'black' }
+            ticks: { font: { size: 10 }, color: axisColor },
+            title: { display: true, text: '%', font: { size: 10 }, color: axisColor }
         };
     } else if (showTemp && showHumidity) {
         scales.y = {
             type: 'linear',
             position: 'left',
-            ticks: { font: { size: 24 }, color: 'black' },
-            title: { display: true, text: 'Temperature (°F)', font: { size: 24 }, color: 'black' }
+            ticks: { font: { size: 10 }, color: axisColor },
+            title: { display: true, text: '°F', font: { size: 10 }, color: axisColor }
         };
         scales.y1 = {
             type: 'linear',
             position: 'right',
-            ticks: { font: { size: 24 }, color: 'black' },
-            title: { display: true, text: 'Humidity (%)', font: { size: 24 }, color: 'black' },
+            ticks: { font: { size: 10 }, color: axisColor },
+            title: { display: true, text: '%', font: { size: 10 }, color: axisColor },
             grid: { drawOnChartArea: false }
         };
     }
@@ -222,7 +224,12 @@ const makeChart = (ctx, labels, showTemp, showHumidity, showCubicle, showConfRoo
                 tooltip: { enabled: false },
                 legend: {
                     position: 'top',
-                    labels: { font: { size: 18 }, color: 'black' }
+                    labels: {
+                        font: { size: 10 },
+                        color: '#334155',
+                        boxWidth: 12,
+                        padding: 8
+                    }
                 }
             },
             scales: getScales(showTemp, showHumidity),
@@ -232,7 +239,7 @@ const makeChart = (ctx, labels, showTemp, showHumidity, showCubicle, showConfRoo
 }
 
 async function fetchData(hours) {
-    const RPC_URL = `https://pzigvqfadwukdkssocfh.supabase.co/rest/v1/rpc/readings_agg_humidity`;
+    const RPC_URL = `https://pzigvqfadwukdkssocfh.supabase.co/rest/v1/rpc/readings_sum_agg_humidity`;
     const headers = {
         apikey: ANON_KEY,
         Authorization: `Bearer ${ANON_KEY}`,
