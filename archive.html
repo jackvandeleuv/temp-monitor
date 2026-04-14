@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Erieview Temperature</title>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-C4YEH5Q502"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+  
+    gtag('config', 'G-C4YEH5Q502');
+  </script>
+  
+  <link
+    rel="icon"
+    id="headerLink"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>😻</text></svg>"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="titleBox">
+    <h1>Erieview - 5th Floor</h1>
+    <p class="emoji" id="emoji"></p>
+  </div>
+  <div class="headerBoxRow">
+    <div id="currentCubeTempBox" class="headerBox">
+      <p id="currentCubeTempVal" class="headerVal"></p>
+      <p class="headerLabel">Cubicle</p>
+    </div>
+    <div id="currentRoomTempBox" class="headerBox">
+      <p id="currentRoomTempVal" class="headerVal"></p>
+      <p class="headerLabel">Conference Room</p>
+    </div>
+    <div id="highTempBox" class="headerBox">
+      <p id="highTempVal" class="headerVal"></p>
+      <p class="headerLabel">High</p>
+    </div>
+    <div id="lowTempBox" class="headerBox">
+      <p id="lowTempVal" class="headerVal"></p>
+      <p class="headerLabel">Low</p>
+    </div>
+  </div>
+  <div class="toggleContainer">
+    <label class="checkboxLabel">
+      <input type="checkbox" id="tempCheckbox" checked>
+      Temperature
+    </label>
+    <label class="checkboxLabel">
+      <input type="checkbox" id="humidityCheckbox">
+      Humidity
+    </label>
+    <span class="divider"></span>
+    <label class="checkboxLabel">
+      <input type="checkbox" id="cubicleCheckbox" checked>
+      Cubicle
+    </label>
+    <label class="checkboxLabel">
+      <input type="checkbox" id="confRoomCheckbox" checked>
+      Conf Room
+    </label>
+    <select id="dateRange">
+      <option value="24">Last 24 hours</option>
+      <option value="72">Last 3 days</option>
+      <option value="168">Last 7 days</option>
+    </select>
+  </div>
+  <div id="chartWrapper">
+    <canvas 
+      id="chart"
+      style="
+        background-color: oklch(97% 0 0);
+      "
+    ></canvas>
+  </div>
+  <h4 class="lastUpdateBox" id="lastUpdateBox">Last update:</h4>
+  <script src="script.js"></script>
+</body>
+</html>
