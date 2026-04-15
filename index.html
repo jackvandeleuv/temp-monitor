@@ -15,14 +15,14 @@
 <body>
 
     <div id="headerBox">
-        <h1>Erieview - 5th Floor</h1>
-        <h1 id="emoji"></h1>
+        <h2>Erieview - 5th Floor</h2>
+        <h2 id="emoji"></h2>
     </div>
 
     <div id="statBoxes">
         <div class="statBox">
             <p class="statBoxVal"><span id="temp"></span>°F</p>
-            <p>Temperature</p>
+            <p>Temp</p>
         </div>
         <div class="statBox">
             <p class="statBoxVal"><span id="dewPoint"></span>°F</p>
@@ -45,12 +45,15 @@
             <span id="lastUpdatedVal"></span>
         </div>
     </div>
+
     <!-- <p id="dewMessage">
         Dew Point is a combined measure of heat and humidity.
     </p> -->
+
     <div id="chartWrapper">
         <canvas id="chart"></canvas>
     </div>
+
     <script type="module" src="scripts/main.js"></script>
 </body>
 </html>
