@@ -3,10 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erieview Temperature</title>
+    <link
+        rel="icon"
+        id="headerLink"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>😻</text></svg>"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="styles/main.css">
-    <title>Document</title>
 </head>
 <body>
+
+    <div id="headerBox">
+        <h1>Erieview - 5th Floor</h1>
+        <h1 id="emoji">🐧</h1>
+    </div>
+
+    <div id="statBoxes">
+        <div class="statBox">
+            <p class="statBoxVal"><span id="temp">71</span>°F</p>
+            <p>Temperature</p>
+        </div>
+        <div class="statBox">
+            <p class="statBoxVal"><span id="dewPoint">61</span>°F</p>
+            <p>Dew Point</p>
+        </div>
+        <div class="statBox">
+            <p class="statBoxVal"><span id="humidity">30</span>%</p>
+            <p>Humidity</p>
+        </div>
+    </div>
+
+    <div id="selectBox">
+        <select id="metric">
+            <option value="tempF">Temp (F)</option>
+            <option value="dewPoint">Dew Point</option>
+            <option value="humidity">Humidity</option>
+        </select>
+        <div id="updatedBox">
+            <span>Last updated:</span>
+            <span id="lastUpdatedVal"></span>
+        </div>
+    </div>
+    <!-- <p id="dewMessage">
+        Dew Point is a combined measure of heat and humidity.
+    </p> -->
+    <div id="chartWrapper">
+        <canvas id="chart"></canvas>
+    </div>
     <script type="module" src="scripts/main.js"></script>
 </body>
 </html>
