@@ -84,12 +84,12 @@ function addMetricSelectionListener() {
 function renderChart(room, cube) {
     const datasets = [
         {
-            label: 'Room',
+            label: 'Conference Room',
             data: room.data,
             borderWidth: 1
         },
         {
-            label: 'Cube',
+            label: 'Cubicle',
             data: cube.data,
             borderWidth: 1
         },
