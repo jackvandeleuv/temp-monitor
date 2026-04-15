@@ -51,9 +51,11 @@ h2 {
 }
 
 #chartWrapper {
-    height: 100%;
+    flex: 1;
+    min-height: 0;
+    /* max-width: var(--default-max-width); */
     width: 100%;
-    max-width: var(--default-max-width);
+    position: relative;
 }
 
 #chart {
