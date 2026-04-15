@@ -1,0 +1,6 @@
+export const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6aWd2cWZhZHd1a2Rrc3NvY2ZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5ODA2MTYsImV4cCI6MjA2NDU1NjYxNn0.5txdBRGZcwFNndwGwV0jsRY5C1MvdArypPpCg0QOxTU';
+export const CUBE_ID = 'D4:0E:86:46:5C:60';
+export const ROOM_ID = 'D4:0E:86:46:03:40';
+export const BUCKET_SIZE_MINS = 30;
+export const HOURS_OF_DATA = 24;
+export const DATA_PULL_FREQUENCY_MS = 1000 * 60 * 3;
