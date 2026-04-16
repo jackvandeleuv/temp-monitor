@@ -4,3 +4,4 @@ export const ROOM_ID = 'D4:0E:86:46:03:40';
 export const BUCKET_SIZE_MINS = 30;
 export const HOURS_OF_DATA = 24;
 export const DATA_PULL_FREQUENCY_MS = 1000 * 60 * 3;
+export const LAST_UPDATED_FREQUENCY_MS = 1000 * 5;

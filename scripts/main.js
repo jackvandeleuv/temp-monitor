@@ -1,4 +1,4 @@
-import { BUCKET_SIZE_MINS, CUBE_ID, DATA_PULL_FREQUENCY_MS, HOURS_OF_DATA, ROOM_ID } from "./config.js";
+import { BUCKET_SIZE_MINS, CUBE_ID, DATA_PULL_FREQUENCY_MS, HOURS_OF_DATA, LAST_UPDATED_FREQUENCY_MS, ROOM_ID } from "./config.js";
 import { getData, getMostRecentTimestamp } from "./fetchData.js";
 
 function datetimeToDisplay(datetime) {
@@ -70,7 +70,7 @@ function addMetricSelectionListener() {
     const elem = document.getElementById('metric');
     elem.addEventListener('change', (() => {
         setMetricOptionState(elem.value);
-        render();
+        renderFetchedData();
     }))
 }
 
@@ -191,21 +191,29 @@ function updateDewMessage() {
 
 function updatedLastUpdated() {
     const lastDataUpdateMilli = getLastDataUpdateTimestamp();
-    // const lastPullMilli = getLastPullTimestamp();
+    const lastPullMilli = getLastPullTimestamp();
 
-    // const lastUpdate = Math.min(lastDataUpdateMilli, lastPullMilli);
-    const secs = Math.round((Date.now() - lastDataUpdateMilli) / 1000);
+    console.log(`
+        last data update: ${new Date(lastDataUpdateMilli)}
+        last data pull: ${new Date(lastPullMilli)}
+    `)
+    const lastUpdateMilli = Math.min(lastDataUpdateMilli, lastPullMilli);
 
-    document.getElementById('lastUpdatedVal').innerHTML = `${secs} seconds ago.`;
+    document.getElementById('lastUpdatedVal').innerHTML = minutesAgoLabel(lastUpdateMilli);
 }
 
 function minutesAgoLabel(timestamp) {
-    const diffMs = Date.now() - new Date(timestamp * 1000).getTime();
+    const diffMs = Date.now() - new Date(timestamp).getTime();
     const minutes = Math.floor(diffMs / 60000); 
 
-    if (minutes <= 0) return "just now";
-    if (minutes === 1) return "1 minute ago";
-    return `${minutes} minutes ago`;
+    if (minutes <= 1) return "<1 mins ago.";
+    if (minutes <= 2) return "2 mins ago.";
+    if (minutes <= 3) return "3 mins ago.";
+    if (minutes <= 5) return "5 mins ago.";
+    if (minutes <= 10) return "10 mins ago.";
+    if (minutes <= 30) return "30 mins ago.";
+    if (minutes <= 60) return "1 hour ago.";
+    return `>1 hour ago`;
 }
 
 function tempToColor(t) {
@@ -290,7 +298,7 @@ function updateStatBoxes() {
 
 }
 
-function render() {
+function renderFetchedData() {
     const data = getChartDataState();
 
     let room = data.filter((row) => row.monitor_id === ROOM_ID);
@@ -301,7 +309,6 @@ function render() {
 
     renderChart(room, cube);
 
-    updatedLastUpdated();
     // updateDewMessage();
     updateStyle();
     updateStatBoxes();
@@ -335,18 +342,34 @@ async function loadData() {
 
 async function update() {
     await loadData();
-    render();
+    renderFetchedData();
 }
 
-async function main() {
-    await update();
-    addMetricSelectionListener();
-
+async function getUpdatedDataLoop() {
     while (true) {
         // Pull new data on a set interval.
         await sleep(DATA_PULL_FREQUENCY_MS);
         await update();
     }
+}
+
+async function updateDisplayTimestampLoop() {
+    while (true) {
+        // Check the last time the data was updated.
+        await sleep(LAST_UPDATED_FREQUENCY_MS);
+        updatedLastUpdated();
+    }
+}
+
+async function main() {
+    await update();
+    updatedLastUpdated();
+
+    addMetricSelectionListener();
+
+    // Infinite loops.
+    getUpdatedDataLoop();
+    updateDisplayTimestampLoop();
 }
 
 function getMetricOptionState() {
