@@ -127,3 +127,14 @@ h2 {
     border-radius: 10px;
     gap: 3px;
 }
+
+#dewMessageWrapper {
+    /* width: 100%; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: oklch(98.5% 0 0);
+    /* background-color: red; */
+}

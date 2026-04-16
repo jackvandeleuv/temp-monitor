@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="styles/main.css">
 </head>
-<body>
+<body id="body">
 
     <div id="headerBox">
         <h2>Erieview - 5th Floor</h2>
@@ -36,7 +36,7 @@
 
     <div id="selectBox">
         <select id="metric">
-            <option value="tempF">Temp (F)</option>
+            <option value="tempF">Temp (°F)</option>
             <option value="dewPoint">Dew Point</option>
             <option value="humidity">Humidity</option>
         </select>
@@ -45,10 +45,6 @@
             <span id="lastUpdatedVal"></span>
         </div>
     </div>
-
-    <!-- <p id="dewMessage">
-        Dew Point is a combined measure of heat and humidity.
-    </p> -->
 
     <div id="chartWrapper">
         <canvas id="chart"></canvas>

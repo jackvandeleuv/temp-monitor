@@ -74,13 +74,6 @@ function addMetricSelectionListener() {
     }))
 }
 
-// bucket_start: "2026-04-14T13:15:00+00:00"
-// humidity_obs: 5
-// monitor_id: "D4:0E:86:46:5C:60"
-// obs_count: 5
-// sum_humidity: 268.6
-// sum_temperature: 121.9
-// temperature_obs: 5
 function renderChart(room, cube) {
     const datasets = [
         {
@@ -180,12 +173,22 @@ function cleanData(data) {
 }
 
 function updateDewMessage() {
+    const wrapper = document.createElement('div');
+    wrapper.id = 'dewMessageWrapper';
+
+    const message = document.createElement('p');
+    message.id = 'dewMessage';
+    message.innerText = '💡 Dew Point is a combined measure of heat and humidity.';
+
+    wrapper.appendChild(message);
+
     const choice = getMetricOptionState();
-    const obj = document.getElementById('dewMessage');
     if (choice === 'dewPoint') {
-        obj.style.visibility = 'visible';
+        const sibling = document.getElementById('selectBox');
+        sibling.parentNode.insertBefore(wrapper, sibling.nextSibling);
     } else {
-        obj.style.visibility = 'hidden';
+        const wrapper = document.getElementById('dewMessageWrapper');
+        if (wrapper) wrapper.remove();
     }
 }
 
@@ -193,10 +196,6 @@ function updatedLastUpdated() {
     const lastDataUpdateMilli = getLastDataUpdateTimestamp();
     const lastPullMilli = getLastPullTimestamp();
 
-    console.log(`
-        last data update: ${new Date(lastDataUpdateMilli)}
-        last data pull: ${new Date(lastPullMilli)}
-    `)
     const lastUpdateMilli = Math.min(lastDataUpdateMilli, lastPullMilli);
 
     document.getElementById('lastUpdatedVal').innerHTML = minutesAgoLabel(lastUpdateMilli);
@@ -217,6 +216,8 @@ function minutesAgoLabel(timestamp) {
 }
 
 function tempToColor(t) {
+    return 'oklch(88.5% 0.062 18.334)'
+    
     if (t < 61) return 'oklch(88.2% 0.059 254.128)'; 
     if (t < 64) return 'oklch(88.2% 0.059 254.128)'; 
     if (t < 67) return 'oklch(88.2% 0.059 254.128)'; 
