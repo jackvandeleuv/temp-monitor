@@ -216,8 +216,6 @@ function minutesAgoLabel(timestamp) {
 }
 
 function tempToColor(t) {
-    return 'oklch(88.5% 0.062 18.334)'
-    
     if (t < 61) return 'oklch(88.2% 0.059 254.128)'; 
     if (t < 64) return 'oklch(88.2% 0.059 254.128)'; 
     if (t < 67) return 'oklch(88.2% 0.059 254.128)'; 
