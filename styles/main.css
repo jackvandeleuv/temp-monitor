@@ -30,6 +30,7 @@ body {
     gap: 10px;
     padding: 10px;
     margin: 0;
+    user-select: none;
 }
 
 p {
@@ -41,6 +42,14 @@ h1 {
 }
 
 h2 {
+    margin: 0;
+}
+
+h3 {
+    margin: 0;
+}
+
+h4 {
     margin: 0;
 }
 
@@ -64,8 +73,12 @@ h2 {
     height: 100% !important;
 }
 
-#emoji {
+.emoji {
     font-size: 40px;
+}
+
+#emojiBox {
+    display: flex;
 }
 
 #statBoxes {
@@ -137,4 +150,32 @@ h2 {
     border-radius: 10px;
     background-color: oklch(98.5% 0 0);
     /* background-color: red; */
+}
+
+.loader {
+    width: 72px;
+    height: 72px;
+    border: 5px solid white;
+    border-bottom-color: oklch(85.5% 0.138 181.071);
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+} 
+
+#loaderWrapper {
+    height: 50%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

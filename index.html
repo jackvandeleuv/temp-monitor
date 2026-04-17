@@ -13,10 +13,15 @@
     <link rel="stylesheet" href="styles/main.css">
 </head>
 <body id="body">
-
     <div id="headerBox">
-        <h2>Erieview - 5th Floor</h2>
-        <h2 id="emoji"></h2>
+        <div>
+            <h2>Urban AI</h2>
+            <h4>Thermal KPIs</h4>
+        </div>
+        <div id="emojiBox">
+            <h2 title="Dew Point" id="dewEmoji" class="emoji"></h2>
+            <h2 title="Temperature" id="tempEmoji" class="emoji"></h2>
+        </div>
     </div>
 
     <div id="statBoxes">
@@ -24,7 +29,7 @@
             <p class="statBoxVal"><span id="temp"></span>°F</p>
             <p>Temp</p>
         </div>
-        <div class="statBox">
+        <div title="Dew Point is a combined measure of temperature and humidity." class="statBox">
             <p class="statBoxVal"><span id="dewPoint"></span>°F</p>
             <p>Dew Point</p>
         </div>

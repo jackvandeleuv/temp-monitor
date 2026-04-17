@@ -19,11 +19,11 @@ function datetimeToDisplay(datetime) {
 function getMetricFromRow(option) {
     const choice = getMetricOptionState();
     if (choice === 'dewPoint') {
-        return option.avg_dew_point;
+        return option.avg_dew_point.toFixed(1);
     } else if (choice === 'humidity') {
-        return option.avg_humidity;
+        return option.avg_humidity.toFixed(1);
     } else {
-        return option.avg_temp;
+        return option.avg_temp.toFixed(1);
     }
 }
 
@@ -116,15 +116,30 @@ function renderChart(room, cube) {
             scales: {
                 x: {
                     title: {
-                        text: 'x',
-                        display: false
+                        display: false,
+                    },
+                    ticks: {
+                        color: 'black',
+                        font: {
+                            size: 16,
+                        }
                     }
                 },
 
                 y: {
                     title: {
                         text: getChoiceDisplayLabel(),
-                        display: true
+                        display: true,
+                        color: 'black',
+                        font: {
+                            size: 16,
+                        }
+                    },
+                    ticks: {
+                        color: 'black',
+                        font: {
+                            size: 16,
+                        }
                     }
                 }
             }
@@ -237,21 +252,41 @@ function tempToEmojis(temp) {
     if (temp < 61) {  // below 61
         return "💀"
     } else if (temp < 64) {  // 61 - 63
-        return "🐧"
+        return "🧊"
     } else if (temp < 67) {  // 64 - 66
-        return "🥶"
+        return "❄️"
     } else if (temp < 69) {  // 67 - 69
-        return "😬"
+        return "🐧"
     } else if (temp < 75) {  // 70 - 74
-        return "😻"
+        return "🧁"
     } else if (temp < 78) {  // 75 - 77
-        return "😓"
+        return "🦎"
     } else if (temp < 81) {  // 78 - 80
-        return "🥵"
+        return "🕯️"
     } else if (temp < 84) {  // 81 - 83
-        return "🐦‍🔥"
+        return "🔥"
     } else {
         return "💀"  // 84 and above
+    }
+}
+
+function dewPointToEmojis(dewPoint) {
+    if (dewPoint < 30) {        // below 30: extremely dry
+        return "💀"
+    } else if (dewPoint < 40) { // 30 - 39: dry
+        return "🌵"
+    } else if (dewPoint < 45) { // 40 - 44: slightly dry
+        return "🐪"
+    } else if (dewPoint < 55) { // 45 - 54: ideal / very comfortable
+        return "😻"
+    } else if (dewPoint < 58) { // 55 - 57: still comfortable
+        return "🙂"
+    } else if (dewPoint < 63) { // 58 - 62: humid indoors
+        return "😓"
+    } else if (dewPoint < 68) { // 63 - 67: muggy
+        return "🥵"
+    } else {                    // 68 and above: oppressive
+        return "💀"
     }
 }
 
@@ -268,15 +303,22 @@ function updateStyle() {
         .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
         .pop();
 
+    // Dew point-based emojis
+    const avgDewPoint = (cube_row.avg_dew_point + room_row.avg_dew_point) / 2;
+    const emoji = dewPointToEmojis(avgDewPoint);
+    document.getElementById('dewEmoji').innerHTML = emoji;
+
     const avgTemp = (cube_row.avg_temp + room_row.avg_temp) / 2;
 
+    // Temp-based colors
     const color = tempToColor(avgTemp);
     document.body.style.backgroundColor = color;
     document.getElementById('chart').style.backgroundColor = color;
 
-    const emoji = tempToEmojis(avgTemp);
-    document.getElementById('emoji').innerHTML = emoji;
-    document.getElementById('headerLink').href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${emoji}</text></svg>`;
+    // Temp-based emojis
+    const tempEmoji = tempToEmojis(avgTemp);
+    document.getElementById('tempEmoji').innerHTML = tempEmoji;
+    document.getElementById('headerLink').href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${tempEmoji}</text></svg>`;
 }
 
 function updateStatBoxes() {
@@ -344,16 +386,12 @@ async function loadData() {
     setLastDataUpdateTimestamp(mostRecentTimestamp * 1000);
 }
 
-async function update() {
-    await loadData();
-    renderFetchedData();
-}
-
 async function getUpdatedDataLoop() {
     while (true) {
         // Pull new data on a set interval.
         await sleep(DATA_PULL_FREQUENCY_MS);
-        await update();
+        await loadData();
+        renderFetchedData();
     }
 }
 
@@ -365,8 +403,32 @@ async function updateDisplayTimestampLoop() {
     }
 }
 
+function renderLoading() {
+    const body = document.getElementById('body');
+    // console.log(body)
+    setCachedPage([...body.childNodes]);
+
+    body.innerHTML = `
+        <div id="loaderWrapper">
+            <span class="loader">
+            </span>
+        </div>
+    `;
+}
+
+function restoreCachedBody() {
+    const page = getCachedPage();
+    const body = document.getElementById('body');
+    body.replaceChildren(...page);
+}
+
 async function main() {
-    await update();
+    renderLoading();
+    await loadData();
+    restoreCachedBody();
+
+    renderFetchedData();
+    
     updatedLastUpdated();
 
     addMetricSelectionListener();
@@ -420,10 +482,19 @@ function setLastPullTimestamp(val) {
     lastPullTimestamp = structuredClone(val);
 }
 
+function getCachedPage() {
+    return cachedPage;
+}
+
+function setCachedPage(page) {
+    cachedPage = page;
+}
+
 let metricOptionState = 'tempF';
 let chartDataState = null;
 let chart = null;
 let lastDataUpdateTimestamp = null;
 let lastPullTimestamp = null;
+let cachedPage = '';
 
 main();
