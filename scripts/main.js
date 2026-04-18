@@ -431,6 +431,10 @@ async function main() {
     getUpdatedDataLoop();
     updateDisplayTimestampLoop();
 
+    // For some reason this persists between page refreshes,
+    // so we reset it here.
+    document.getElementById("metric").value = "tempF";
+
     loadingOff();
 }
 
