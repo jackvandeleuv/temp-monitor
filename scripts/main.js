@@ -1,8 +1,8 @@
-const TEST = 63;
-
 import { BUCKET_SIZE_MINS, CUBE_ID, DATA_PULL_FREQUENCY_MS, HOURS_OF_DATA, LAST_UPDATED_FREQUENCY_MS, ROOM_ID } from "./config.js";
 import { getData, getMostRecentTimestamp } from "./fetchData.js";
-import { dewPointToEmojis, tempToBucketed, tempToColor, tempToEmojis, tempToEmojisMap } from "./tempBuckets.js";
+import { dewPointToColorBuckets, dewPointToEmojisBuckets, getBucket, getNextClosestBucket, getNextClosestThreshold, tempToColorBuckets, tempToEmojisBuckets } from "./buckets.js";
+import { cToF, dewPoint } from "./utilities.js";
+import { renderChart } from "./renderChart.js";
 
 function datetimeToDisplay(datetime) {
     const hour = datetime.getHours();
@@ -77,185 +77,6 @@ function addMetricSelectionListener() {
     }))
 }
 
-function getNearestTempBucket(temp) {
-    const avgTemp = Math.round(temp);
-
-    // Exclude the actual closest temp, as the goal
-    // is to show the closest threshold we haven't hit yet.
-    const actualBucket = tempToBucketed(temp);
-    console.log(actualBucket)
-    const thresholds = [...tempToEmojisMap.keys()]
-        .filter((x) => x !== actualBucket)
-        .sort();
-
-    console.log(thresholds)
-
-    const diffs = [];
-    for (let i = 0; i < thresholds.length; i++) {
-        diffs.push([thresholds[i], Math.abs(thresholds[i] - avgTemp)]);
-    }
-    diffs.sort((a, b) => b[1] - a[1]);
-    
-    return diffs.pop()[0];
-}
-
-function makeLineSpec() {
-    const display = getMetricOptionState() === 'tempF';
-
-    const avgTemp = getAvgCurrentTemp();
-    const nearestBucketTemp = getNearestTempBucket(avgTemp);
-    const nearestBucketEmoji = tempToEmojis(nearestBucketTemp);
-
-    const yAdjust = avgTemp < nearestBucketTemp ? 25 : 0;
-    // const arrow = avgTemp < nearestBucketTemp ? '⬆️' : '⬇️';
-
-    return {
-        display: display,
-        type: 'line',
-        borderWidth: 1,
-        borderColor: 'black',
-        yMin: nearestBucketTemp,
-        yMax: nearestBucketTemp,
-        label: {
-            display: true,
-            content: nearestBucketEmoji,
-            position: 'end',
-            font: {
-                size: 40,
-            },
-            backgroundColor: 'transparent',
-            yAdjust: yAdjust,
-        },
-    }
-}
-
-function renderChart(room, cube) {
-    const datasets = [
-        {
-            label: 'Cubicle',
-            // data: cube.data,
-            data: [
-                TEST, TEST + 1.3, 
-                TEST - 1, TEST + 1.2, 
-                TEST - 1.1, TEST + 3, 
-                TEST, TEST + 4, 
-                TEST - 1.1, TEST + 1, 
-                TEST - 1, TEST + 1, 
-                TEST - 1, TEST + 1, 
-                TEST - 1, TEST + 1, 
-                TEST +1, TEST + 1, 
-                TEST +1, TEST + 4, 
-                TEST - 1, TEST + 5, 
-                TEST - 1, TEST + 1, 
-                TEST - 1, TEST + 1, 
-
-            ],
-            borderWidth: 2,
-            borderColor: "black",
-            backgroundColor: "black"
-        },
-        // {
-        //     label: 'Conference Room',
-        //     data: room.data,
-        //     borderWidth: 2,
-        //     borderDash: [6, 6],
-        //     borderColor: "black",
-        // },
-    ];
-
-    if (getChartObj()) {
-        const chart = getChartObj();
-        chart.data.datasets = datasets;
-        chart.data.labels = room.labels;
-        chart.options.scales.y.title.text = getChoiceDisplayLabel();
-        chart.options.plugins.annotation.annotations.constLine = makeLineSpec();
-        chart.update();
-        return;
-    }
-
-    const ctx = document.getElementById('chart');
-
-    const chartSpec = {
-        type: 'line',
-        data: {
-            labels: room.labels,
-            datasets: datasets
-        },
-        options: {
-            plugins: {
-                annotation: {
-                    annotations: {
-                        constLine: makeLineSpec(),
-                    }
-                }
-            },
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    title: {
-                        display: false,
-                    },
-                    ticks: {
-                        color: 'black',
-                        font: {
-                            size: 16,
-                        }
-                    }
-                },
-
-                y: {
-                    title: {
-                        text: getChoiceDisplayLabel(),
-                        display: true,
-                        color: 'black',
-                        font: {
-                            size: 16,
-                        }
-                    },
-                    ticks: {
-                        color: 'black',
-                        font: {
-                            size: 16,
-                        }
-                    }
-                }
-            }
-        }
-    };
-
-    const chart = new Chart(ctx, chartSpec);
-
-    setChartObj(chart);
-}
-
-function getChoiceDisplayLabel() {
-    const choice = getMetricOptionState();
-    if (choice === 'dewPoint') {
-        return 'Dew Point (°F)'
-    } else if (choice === 'humidity') {
-        return 'Humidity (%)'
-    } else {
-        return 'Temperature (°F)'
-    }
-}
-
-function cToF(c) {
-    return (c * (9 / 5)) + 32;
-}
-
-function dewPoint(tempC, humidity) {
-    const rh = humidity / 100;
-
-    const A = 17.27;
-    const H = 237.7;
-
-    const gamma = (A * tempC) / (H + tempC) + Math.log(rh);
-    const dewPointC = (H * gamma) / (A - gamma);
-
-    return dewPointC;
-}
-
 function cleanData(data) {
     return [...data]
         .map((row) => ({
@@ -315,7 +136,9 @@ function minutesAgoLabel(timestamp) {
     return `>1 hour ago`;
 }
 
-function getAvgCurrentDewPoint() {
+export function getAvgCurrentDewPoint() {
+    // return TEST_TEMP;
+
     const data = getChartDataState();
 
     const cube_row = data
@@ -331,8 +154,8 @@ function getAvgCurrentDewPoint() {
     return (cube_row.avg_dew_point + room_row.avg_dew_point) / 2;
 }
 
-function getAvgCurrentTemp() {
-    return TEST;
+export function getAvgCurrentTemp() {
+    // return TEST_TEMP;
 
     const data = getChartDataState();
 
@@ -353,18 +176,18 @@ function updateStyle() {
     // Dew point based
     const avgDewPoint = getAvgCurrentDewPoint();
 
-    const dewEmoji = dewPointToEmojis(avgDewPoint);
+    const dewEmoji = getBucket(avgDewPoint, dewPointToEmojisBuckets);
     document.getElementById('dewEmoji').innerHTML = dewEmoji;
     document.getElementById('headerLink').href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${dewEmoji}</text></svg>`;
+    const color = getBucket(avgDewPoint, dewPointToColorBuckets);
 
     // Temp based
     const avgTemp = getAvgCurrentTemp();
 
-    const color = tempToColor(avgTemp);
     document.body.style.backgroundColor = color;
     document.getElementById('chart').style.backgroundColor = color;
 
-    const tempEmoji = tempToEmojis(avgTemp);
+    const tempEmoji = getBucket(avgTemp, tempToEmojisBuckets);
     document.getElementById('tempEmoji').innerHTML = tempEmoji;
 }
 
@@ -387,7 +210,7 @@ function updateStatBoxes() {
 
     document.getElementById('temp').innerHTML = Math.round(temp);
     document.getElementById('dewPoint').innerHTML = Math.round(dew);
-    document.getElementById('humidity').innerHTML = Math.round(humidity);
+    // document.getElementById('humidity').innerHTML = Math.round(humidity);
 
 }
 
@@ -485,10 +308,6 @@ async function main() {
     loadingOff();
 }
 
-function getMetricOptionState() {
-    return structuredClone(metricOptionState);
-}
-
 function setChartDataState(update) {
     chartDataState = structuredClone(update);
 }
@@ -497,20 +316,16 @@ function getChartDataState() {
     return structuredClone(chartDataState);
 }
 
+export function getMetricOptionState() {
+    return structuredClone(metricOptionState);
+}
+
 function setMetricOptionState(choice) {
     const VALID = ['dewPoint', 'humidity', 'tempF'];
     if (!VALID.includes(choice)) {
         throw new Error('Invalid metric option.');
     }
     metricOptionState = structuredClone(choice);
-}
-
-function setChartObj(chartObj) {
-    chart = chartObj;
-}
-
-function getChartObj() {
-    return chart;
 }
 
 function getLastDataUpdateTimestamp() {
@@ -531,7 +346,6 @@ function setLastPullTimestamp(val) {
 
 let metricOptionState = 'tempF';
 let chartDataState = null;
-let chart = null;
 let lastDataUpdateTimestamp = null;
 let lastPullTimestamp = null;
 

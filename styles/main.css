@@ -93,7 +93,8 @@ h4 {
 
 .statBox {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
     gap: 3px;
     background-color: white;
     box-sizing: border-box;
