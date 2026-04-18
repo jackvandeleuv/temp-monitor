@@ -1,5 +1,8 @@
+const TEST = 63;
+
 import { BUCKET_SIZE_MINS, CUBE_ID, DATA_PULL_FREQUENCY_MS, HOURS_OF_DATA, LAST_UPDATED_FREQUENCY_MS, ROOM_ID } from "./config.js";
 import { getData, getMostRecentTimestamp } from "./fetchData.js";
+import { dewPointToEmojis, tempToBucketed, tempToColor, tempToEmojis, tempToEmojisMap } from "./tempBuckets.js";
 
 function datetimeToDisplay(datetime) {
     const hour = datetime.getHours();
@@ -74,23 +77,90 @@ function addMetricSelectionListener() {
     }))
 }
 
+function getNearestTempBucket(temp) {
+    const avgTemp = Math.round(temp);
+
+    // Exclude the actual closest temp, as the goal
+    // is to show the closest threshold we haven't hit yet.
+    const actualBucket = tempToBucketed(temp);
+    console.log(actualBucket)
+    const thresholds = [...tempToEmojisMap.keys()]
+        .filter((x) => x !== actualBucket)
+        .sort();
+
+    console.log(thresholds)
+
+    const diffs = [];
+    for (let i = 0; i < thresholds.length; i++) {
+        diffs.push([thresholds[i], Math.abs(thresholds[i] - avgTemp)]);
+    }
+    diffs.sort((a, b) => b[1] - a[1]);
+    
+    return diffs.pop()[0];
+}
+
+function makeLineSpec() {
+    const display = getMetricOptionState() === 'tempF';
+
+    const avgTemp = getAvgCurrentTemp();
+    const nearestBucketTemp = getNearestTempBucket(avgTemp);
+    const nearestBucketEmoji = tempToEmojis(nearestBucketTemp);
+
+    const yAdjust = avgTemp < nearestBucketTemp ? 25 : 0;
+    // const arrow = avgTemp < nearestBucketTemp ? '⬆️' : '⬇️';
+
+    return {
+        display: display,
+        type: 'line',
+        borderWidth: 1,
+        borderColor: 'black',
+        yMin: nearestBucketTemp,
+        yMax: nearestBucketTemp,
+        label: {
+            display: true,
+            content: nearestBucketEmoji,
+            position: 'end',
+            font: {
+                size: 40,
+            },
+            backgroundColor: 'transparent',
+            yAdjust: yAdjust,
+        },
+    }
+}
+
 function renderChart(room, cube) {
     const datasets = [
         {
             label: 'Cubicle',
-            data: cube.data,
+            // data: cube.data,
+            data: [
+                TEST, TEST + 1.3, 
+                TEST - 1, TEST + 1.2, 
+                TEST - 1.1, TEST + 3, 
+                TEST, TEST + 4, 
+                TEST - 1.1, TEST + 1, 
+                TEST - 1, TEST + 1, 
+                TEST - 1, TEST + 1, 
+                TEST - 1, TEST + 1, 
+                TEST +1, TEST + 1, 
+                TEST +1, TEST + 4, 
+                TEST - 1, TEST + 5, 
+                TEST - 1, TEST + 1, 
+                TEST - 1, TEST + 1, 
+
+            ],
             borderWidth: 2,
             borderColor: "black",
             backgroundColor: "black"
         },
-        {
-            label: 'Conference Room',
-            data: room.data,
-            borderWidth: 2,
-            borderDash: [6, 6],
-            borderColor: "black",
-            // backgroundColor: "black"
-        },
+        // {
+        //     label: 'Conference Room',
+        //     data: room.data,
+        //     borderWidth: 2,
+        //     borderDash: [6, 6],
+        //     borderColor: "black",
+        // },
     ];
 
     if (getChartObj()) {
@@ -98,19 +168,27 @@ function renderChart(room, cube) {
         chart.data.datasets = datasets;
         chart.data.labels = room.labels;
         chart.options.scales.y.title.text = getChoiceDisplayLabel();
+        chart.options.plugins.annotation.annotations.constLine = makeLineSpec();
         chart.update();
         return;
     }
 
     const ctx = document.getElementById('chart');
 
-    const chart = new Chart(ctx, {
+    const chartSpec = {
         type: 'line',
         data: {
             labels: room.labels,
             datasets: datasets
         },
         options: {
+            plugins: {
+                annotation: {
+                    annotations: {
+                        constLine: makeLineSpec(),
+                    }
+                }
+            },
             responsive: true,
             maintainAspectRatio: false,
             scales: {
@@ -144,7 +222,9 @@ function renderChart(room, cube) {
                 }
             }
         }
-    });
+    };
+
+    const chart = new Chart(ctx, chartSpec);
 
     setChartObj(chart);
 }
@@ -235,62 +315,7 @@ function minutesAgoLabel(timestamp) {
     return `>1 hour ago`;
 }
 
-function tempToColor(t) {
-    if (t < 61) return 'oklch(88.2% 0.059 254.128)'; 
-    if (t < 64) return 'oklch(88.2% 0.059 254.128)'; 
-    if (t < 67) return 'oklch(88.2% 0.059 254.128)'; 
-    if (t < 69) return 'oklch(93.2% 0.032 255.585)'; 
-
-    if (t < 75) return 'oklch(97% 0 0)'; 
-    if (t < 78) return 'oklch(97% 0 0)';
-
-    if (t < 81) return 'oklch(88.5% 0.062 18.334)';
-    return 'oklch(80.8% 0.114 19.571)'; 
-}
-
-function tempToEmojis(temp) {
-    if (temp < 61) {  // below 61
-        return "💀"
-    } else if (temp < 64) {  // 61 - 63
-        return "🧊"
-    } else if (temp < 67) {  // 64 - 66
-        return "❄️"
-    } else if (temp < 69) {  // 67 - 69
-        return "🐧"
-    } else if (temp < 75) {  // 70 - 74
-        return "🧁"
-    } else if (temp < 78) {  // 75 - 77
-        return "🦎"
-    } else if (temp < 81) {  // 78 - 80
-        return "🕯️"
-    } else if (temp < 84) {  // 81 - 83
-        return "🔥"
-    } else {
-        return "💀"  // 84 and above
-    }
-}
-
-function dewPointToEmojis(dewPoint) {
-    if (dewPoint < 30) {        // below 30: extremely dry
-        return "💀"
-    } else if (dewPoint < 40) { // 30 - 39: dry
-        return "🌵"
-    } else if (dewPoint < 45) { // 40 - 44: slightly dry
-        return "🐪"
-    } else if (dewPoint < 55) { // 45 - 54: ideal / very comfortable
-        return "😻"
-    } else if (dewPoint < 58) { // 55 - 57: still comfortable
-        return "🙂"
-    } else if (dewPoint < 63) { // 58 - 62: humid indoors
-        return "😓"
-    } else if (dewPoint < 68) { // 63 - 67: muggy
-        return "🥵"
-    } else {                    // 68 and above: oppressive
-        return "💀"
-    }
-}
-
-function updateStyle() {
+function getAvgCurrentDewPoint() {
     const data = getChartDataState();
 
     const cube_row = data
@@ -303,22 +328,44 @@ function updateStyle() {
         .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
         .pop();
 
-    // Dew point-based emojis
-    const avgDewPoint = (cube_row.avg_dew_point + room_row.avg_dew_point) / 2;
-    const emoji = dewPointToEmojis(avgDewPoint);
-    document.getElementById('dewEmoji').innerHTML = emoji;
+    return (cube_row.avg_dew_point + room_row.avg_dew_point) / 2;
+}
 
-    const avgTemp = (cube_row.avg_temp + room_row.avg_temp) / 2;
+function getAvgCurrentTemp() {
+    return TEST;
 
-    // Temp-based colors
+    const data = getChartDataState();
+
+    const cube_row = data
+        .filter((row) => row.monitor_id === CUBE_ID)
+        .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
+        .pop();
+
+    const room_row = data
+        .filter((row) => row.monitor_id === ROOM_ID)
+        .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
+        .pop();
+
+    return (cube_row.avg_temp + room_row.avg_temp) / 2;
+}
+
+function updateStyle() {
+    // Dew point based
+    const avgDewPoint = getAvgCurrentDewPoint();
+
+    const dewEmoji = dewPointToEmojis(avgDewPoint);
+    document.getElementById('dewEmoji').innerHTML = dewEmoji;
+    document.getElementById('headerLink').href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${dewEmoji}</text></svg>`;
+
+    // Temp based
+    const avgTemp = getAvgCurrentTemp();
+
     const color = tempToColor(avgTemp);
     document.body.style.backgroundColor = color;
     document.getElementById('chart').style.backgroundColor = color;
 
-    // Temp-based emojis
     const tempEmoji = tempToEmojis(avgTemp);
     document.getElementById('tempEmoji').innerHTML = tempEmoji;
-    document.getElementById('headerLink').href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${tempEmoji}</text></svg>`;
 }
 
 function updateStatBoxes() {
