@@ -1,5 +1,4 @@
 import { dewPointToColorBuckets, dewPointToEmojisBuckets, getBucket, getNextClosestBucket, getNextClosestThreshold, tempToColorBuckets, tempToEmojisBuckets } from "./buckets.js";
-// import { TEST_TEMP } from "./config.js";
 import { getAvgCurrentDewPoint, getAvgCurrentTemp, getMetricOptionState } from "./main.js";
 
 function makeLineSpec() {
@@ -57,7 +56,6 @@ function makeDewPointLineSpec() {
 
     const nearestBucketEmoji = getNextClosestBucket(avgDewPoint, dewPointToEmojisBuckets);
     const nearestColor = getNextClosestBucket(avgDewPoint, dewPointToColorBuckets);
-    console.log(nearestBucketThreshold)
     const yAdjust = avgDewPoint < nearestBucketThreshold ? 23 : -23;
 
     return {
@@ -95,21 +93,6 @@ export function renderChart(room, cube) {
         {
             label: 'Cubicle',
             data: cube.data,
-            // data: [
-            //     TEST_TEMP + -.4, TEST_TEMP + 1.3, 
-            //     TEST_TEMP - 1, TEST_TEMP + 1.2, 
-            //     TEST_TEMP - 1.1, TEST_TEMP + 3, 
-            //     TEST_TEMP, TEST_TEMP + 4, 
-            //     TEST_TEMP - 1.1, TEST_TEMP + 1, 
-            //     TEST_TEMP - 1, TEST_TEMP + 1, 
-            //     TEST_TEMP - 1, TEST_TEMP + 1, 
-            //     TEST_TEMP - 1, TEST_TEMP + 1, 
-            //     TEST_TEMP +1, TEST_TEMP + 1, 
-            //     TEST_TEMP +1, TEST_TEMP + 4, 
-            //     TEST_TEMP - 1, TEST_TEMP + 5, 
-            //     TEST_TEMP - 1, TEST_TEMP + 1, 
-            //     TEST_TEMP - 1, TEST_TEMP + 1.4, 
-            // ],
             borderWidth: 2,
             borderColor: "black",
             backgroundColor: "black",

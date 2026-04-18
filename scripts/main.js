@@ -137,8 +137,6 @@ function minutesAgoLabel(timestamp) {
 }
 
 export function getAvgCurrentDewPoint() {
-    // return TEST_TEMP;
-
     const data = getChartDataState();
 
     const cube_row = data
@@ -155,8 +153,6 @@ export function getAvgCurrentDewPoint() {
 }
 
 export function getAvgCurrentTemp() {
-    // return TEST_TEMP;
-
     const data = getChartDataState();
 
     const cube_row = data
@@ -210,8 +206,6 @@ function updateStatBoxes() {
 
     document.getElementById('temp').innerHTML = Math.round(temp);
     document.getElementById('dewPoint').innerHTML = Math.round(dew);
-    // document.getElementById('humidity').innerHTML = Math.round(humidity);
-
 }
 
 function renderFetchedData() {
@@ -227,7 +221,6 @@ function renderFetchedData() {
 
     renderChart(room, cube);
 
-    // updateDewMessage();
     updateStyle();
     updateStatBoxes();
 }
@@ -244,11 +237,6 @@ async function loadData() {
     const mostRecentTimestampPromise = getMostRecentTimestamp();
     let uncleanData = await getData(startUnix, endUnix, BUCKET_SIZE_MINS);
     setLastPullTimestamp(Date.now());
-
-    // TEST
-    // uncleanData = uncleanData.filter((row) => 
-    //     (new Date(row.bucket_start)).getHours() !== 9
-    // );
 
     const data = cleanData(uncleanData);
     setChartDataState(data);

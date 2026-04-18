@@ -5,4 +5,3 @@ export const BUCKET_SIZE_MINS = 60;
 export const HOURS_OF_DATA = 24;
 export const DATA_PULL_FREQUENCY_MS = 1000 * 60 * 3;
 export const LAST_UPDATED_FREQUENCY_MS = 1000 * 5;
-// export const TEST_TEMP = 63;

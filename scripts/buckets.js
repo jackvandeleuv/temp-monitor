@@ -86,7 +86,6 @@ export function getNextClosestThreshold(value, buckets) {
         new bucket.
     `
     const rounded = Math.round(value);
-    console.log(buckets)
 
     let out = null;
     let smallestDiff = Infinity;
@@ -102,7 +101,6 @@ export function getNextClosestThreshold(value, buckets) {
         const maxDiff = Math.abs(bucketMax - rounded);
         const diff = Math.min(minDiff, maxDiff);
         if (diff < smallestDiff) {
-            console.log(`diff: ${diff}\nmin: ${bucketMin}\nmax: ${bucketMax}`)
             smallestDiff = diff;
             if (minDiff < maxDiff) {
                 out = bucketMin;
