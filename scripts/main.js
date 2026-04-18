@@ -345,6 +345,8 @@ function updateStatBoxes() {
 }
 
 function renderFetchedData() {
+    updatedLastUpdated();
+
     const data = getChartDataState();
 
     let room = data.filter((row) => row.monitor_id === ROOM_ID);
@@ -370,7 +372,6 @@ async function loadData() {
     const endUnix = Math.round(Date.now() / 1000);
 
     const mostRecentTimestampPromise = getMostRecentTimestamp();
-
     let uncleanData = await getData(startUnix, endUnix, BUCKET_SIZE_MINS);
     setLastPullTimestamp(Date.now());
 
@@ -403,29 +404,22 @@ async function updateDisplayTimestampLoop() {
     }
 }
 
-function renderLoading() {
-    const body = document.getElementById('body');
-    // console.log(body)
-    setCachedPage([...body.childNodes]);
-
-    body.innerHTML = `
-        <div id="loaderWrapper">
-            <span class="loader">
-            </span>
-        </div>
-    `;
+function loadingOn() {
+    const chart = document.getElementById('chart');
+    chart.style.visibility = 'hidden';
+    const wrapper = document.getElementById('loaderWrapper');
+    wrapper.style.visibility = 'visible';
 }
 
-function restoreCachedBody() {
-    const page = getCachedPage();
-    const body = document.getElementById('body');
-    body.replaceChildren(...page);
+function loadingOff() {
+    const wrapper = document.getElementById('loaderWrapper');
+    wrapper.style.visibility = 'hidden';
+    const chart = document.getElementById('chart');
+    chart.style.visibility = 'visible';
 }
 
 async function main() {
-    renderLoading();
     await loadData();
-    restoreCachedBody();
 
     renderFetchedData();
     
@@ -436,6 +430,8 @@ async function main() {
     // Infinite loops.
     getUpdatedDataLoop();
     updateDisplayTimestampLoop();
+
+    loadingOff();
 }
 
 function getMetricOptionState() {
@@ -482,19 +478,10 @@ function setLastPullTimestamp(val) {
     lastPullTimestamp = structuredClone(val);
 }
 
-function getCachedPage() {
-    return cachedPage;
-}
-
-function setCachedPage(page) {
-    cachedPage = page;
-}
-
 let metricOptionState = 'tempF';
 let chartDataState = null;
 let chart = null;
 let lastDataUpdateTimestamp = null;
 let lastPullTimestamp = null;
-let cachedPage = '';
 
 main();

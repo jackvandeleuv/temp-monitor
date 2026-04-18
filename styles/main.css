@@ -19,6 +19,7 @@ html {
 }
 
 body {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -69,6 +70,7 @@ h4 {
 }
 
 #chart {
+    visibility: hidden;
     width: 100% !important;
     height: 100% !important;
 }
@@ -155,8 +157,8 @@ h4 {
 .loader {
     width: 72px;
     height: 72px;
-    border: 5px solid white;
-    border-bottom-color: oklch(85.5% 0.138 181.071);
+    border: 5px solid   oklch(55.4% 0.046 257.417);
+    border-bottom-color:  oklch(85.5% 0.138 181.071);
     border-radius: 50%;
     display: inline-block;
     box-sizing: border-box;
@@ -173,7 +175,10 @@ h4 {
 } 
 
 #loaderWrapper {
-    height: 50%;
+    position: absolute;
+    background-color: white;
+    top: 0;
+    height: 100%;
     width: 100%;
     display: flex;
     justify-content: center;
