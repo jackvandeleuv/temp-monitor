@@ -168,6 +168,22 @@ export function getAvgCurrentTemp() {
     return (cube_row.avg_temp + room_row.avg_temp) / 2;
 }
 
+export function getAvgCurrentHumidity() {
+    const data = getChartDataState();
+
+    const cube_row = data
+        .filter((row) => row.monitor_id === CUBE_ID)
+        .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
+        .pop();
+
+    const room_row = data
+        .filter((row) => row.monitor_id === ROOM_ID)
+        .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
+        .pop();
+
+    return (cube_row.avg_humidity + room_row.avg_humidity) / 2;
+}
+
 function updateStyle() {
     // Dew point based
     const avgDewPoint = getAvgCurrentDewPoint();

@@ -1,5 +1,6 @@
 import { dewPointToColorBuckets, dewPointToEmojisBuckets, getBucket, getNextClosestBucket, getNextClosestThreshold, tempToColorBuckets, tempToEmojisBuckets } from "./buckets.js";
-import { getAvgCurrentDewPoint, getAvgCurrentTemp, getMetricOptionState } from "./main.js";
+import { MIN_THRESHOLD_DISTANCE } from "./config.js";
+import { getAvgCurrentDewPoint, getAvgCurrentHumidity, getAvgCurrentTemp, getMetricOptionState } from "./main.js";
 
 function makeLineSpec() {
     const choice = getMetricOptionState();
@@ -12,11 +13,22 @@ function makeLineSpec() {
     }
 }
 
+function getCurrentAvgMetric() {
+    const choice = getMetricOptionState();
+    if (choice === 'tempF') {
+        return getAvgCurrentTemp();;
+    } else if (choice === 'dewPoint') {
+        return getAvgCurrentDewPoint();;
+    } else {
+        return getAvgCurrentHumidity();
+    }
+}
+
 function makeTempLineSpec() {
     const avgTemp = getAvgCurrentTemp();
     const nearestBucketThreshold = getNextClosestThreshold(avgTemp, tempToEmojisBuckets);
 
-    if (Math.abs(avgTemp - nearestBucketThreshold) > 2) {
+    if (Math.abs(avgTemp - nearestBucketThreshold) > MIN_THRESHOLD_DISTANCE) {
         return makeEmptyLineSpec();
     }
 
@@ -34,7 +46,7 @@ function makeTempLineSpec() {
         label: {
             display: true,
             content: nearestBucketEmoji,
-            position: 'start',
+            position: 'end',
             font: {
                 size: 30,
             },
@@ -50,7 +62,7 @@ function makeDewPointLineSpec() {
     const avgDewPoint = getAvgCurrentDewPoint();
     const nearestBucketThreshold = getNextClosestThreshold(avgDewPoint, dewPointToEmojisBuckets);
 
-    if (Math.abs(avgDewPoint - nearestBucketThreshold) > 2) {
+    if (Math.abs(avgDewPoint - nearestBucketThreshold) > MIN_THRESHOLD_DISTANCE) {
         return makeEmptyLineSpec();
     }
 
@@ -67,7 +79,7 @@ function makeDewPointLineSpec() {
         label: {
             display: true,
             content: nearestBucketEmoji,
-            position: 'start',
+            position: 'end',
             font: {
                 size: 30,
             },
@@ -82,13 +94,27 @@ function makeDewPointLineSpec() {
 function makeEmptyLineSpec() {
     return {
         display: false,
-        type: 'line',
-        borderWidth: 1,
-        borderColor: 'black',
     }
 }
 
 export function renderChart(room, cube) {
+    const lineSpec = makeLineSpec();
+    const avgMetric = getCurrentAvgMetric();
+
+    // Set default min/max.
+    const numericData = [...room.data, ...cube.data].map((val) => Number(val));
+    let chartMin = Math.round(Math.min(...numericData)) - 1;
+    let chartMax = Math.round(Math.max(...numericData)) + 1;
+
+    // If there is a constant line to display.
+    if (lineSpec.display !== makeEmptyLineSpec().display) {
+        if (lineSpec.yMin > avgMetric) {
+            chartMax = Math.round(lineSpec.yMin + 1);
+        } else {
+            chartMin = Math.round(lineSpec.yMin - 1);
+        }
+    }
+
     const datasets = [
         {
             label: 'Cubicle',
@@ -111,7 +137,10 @@ export function renderChart(room, cube) {
         chart.data.datasets = datasets;
         chart.data.labels = room.labels;
         chart.options.scales.y.title.text = getChoiceDisplayLabel();
-        chart.options.plugins.annotation.annotations.constLine = makeLineSpec();
+        chart.options.scales.y.min = chartMin;
+        chart.options.scales.y.max = chartMax;
+        chart.options.plugins.annotation.annotations.constLine = lineSpec;
+        chart.options.scales.y.autoSkip = false;
         chart.update();
         return;
     }
@@ -128,7 +157,7 @@ export function renderChart(room, cube) {
             plugins: {
                 annotation: {
                     annotations: {
-                        constLine: makeLineSpec(),
+                        constLine: lineSpec,
                     }
                 }
             },
@@ -161,7 +190,11 @@ export function renderChart(room, cube) {
                         font: {
                             size: 16,
                         },
+                        autoSkip: false,
+                        stepSize: 1,
                     },
+                    max: chartMax,
+                    min: chartMin,
                 }
             }
         }
