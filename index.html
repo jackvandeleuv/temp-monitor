@@ -7,9 +7,10 @@
     <link
         rel="icon"
         id="headerLink"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>😻</text></svg>"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>"
     />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.1.0/chartjs-plugin-annotation.min.js"></script>
     <link rel="stylesheet" href="styles/main.css">
 </head>
 <body id="body">
@@ -23,23 +24,23 @@
             <h4>Thermal KPIs</h4>
         </div>
         <div id="emojiBox">
-            <h2 title="Dew Point" id="dewEmoji" class="emoji"></h2>
-            <h2 title="Temperature" id="tempEmoji" class="emoji"></h2>
         </div>
     </div>
 
     <div id="statBoxes">
         <div class="statBox">
-            <p class="statBoxVal"><span id="temp"></span>°F</p>
-            <p>Temp</p>
+            <h2 title="Temperature" id="tempEmoji" class="emoji"></h2>
+            <div>
+                <p class="statBoxVal"><span id="temp"></span>°F</p>
+                <p>Temp</p>
+            </div>
         </div>
         <div title="Dew Point is a combined measure of temperature and humidity." class="statBox">
-            <p class="statBoxVal"><span id="dewPoint"></span>°F</p>
-            <p>Dew Point</p>
-        </div>
-        <div class="statBox">
-            <p class="statBoxVal"><span id="humidity"></span>%</p>
-            <p>Humidity</p>
+            <h2 id="dewEmoji" class="emoji"></h2>
+            <div>
+                <p class="statBoxVal"><span id="dewPoint"></span>°F</p>
+                <p>Dew Point</p>
+            </div>
         </div>
     </div>
 

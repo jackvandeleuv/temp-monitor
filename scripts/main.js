@@ -1,5 +1,8 @@
 import { BUCKET_SIZE_MINS, CUBE_ID, DATA_PULL_FREQUENCY_MS, HOURS_OF_DATA, LAST_UPDATED_FREQUENCY_MS, ROOM_ID } from "./config.js";
 import { getData, getMostRecentTimestamp } from "./fetchData.js";
+import { dewPointToColorBuckets, dewPointToEmojisBuckets, getBucket, getNextClosestBucket, getNextClosestThreshold, tempToColorBuckets, tempToEmojisBuckets } from "./buckets.js";
+import { cToF, dewPoint } from "./utilities.js";
+import { renderChart } from "./renderChart.js";
 
 function datetimeToDisplay(datetime) {
     const hour = datetime.getHours();
@@ -74,108 +77,6 @@ function addMetricSelectionListener() {
     }))
 }
 
-function renderChart(room, cube) {
-    const datasets = [
-        {
-            label: 'Cubicle',
-            data: cube.data,
-            borderWidth: 2,
-            borderColor: "black",
-            backgroundColor: "black"
-        },
-        {
-            label: 'Conference Room',
-            data: room.data,
-            borderWidth: 2,
-            borderDash: [6, 6],
-            borderColor: "black",
-            // backgroundColor: "black"
-        },
-    ];
-
-    if (getChartObj()) {
-        const chart = getChartObj();
-        chart.data.datasets = datasets;
-        chart.data.labels = room.labels;
-        chart.options.scales.y.title.text = getChoiceDisplayLabel();
-        chart.update();
-        return;
-    }
-
-    const ctx = document.getElementById('chart');
-
-    const chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: room.labels,
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    title: {
-                        display: false,
-                    },
-                    ticks: {
-                        color: 'black',
-                        font: {
-                            size: 16,
-                        }
-                    }
-                },
-
-                y: {
-                    title: {
-                        text: getChoiceDisplayLabel(),
-                        display: true,
-                        color: 'black',
-                        font: {
-                            size: 16,
-                        }
-                    },
-                    ticks: {
-                        color: 'black',
-                        font: {
-                            size: 16,
-                        }
-                    }
-                }
-            }
-        }
-    });
-
-    setChartObj(chart);
-}
-
-function getChoiceDisplayLabel() {
-    const choice = getMetricOptionState();
-    if (choice === 'dewPoint') {
-        return 'Dew Point (°F)'
-    } else if (choice === 'humidity') {
-        return 'Humidity (%)'
-    } else {
-        return 'Temperature (°F)'
-    }
-}
-
-function cToF(c) {
-    return (c * (9 / 5)) + 32;
-}
-
-function dewPoint(tempC, humidity) {
-    const rh = humidity / 100;
-
-    const A = 17.27;
-    const H = 237.7;
-
-    const gamma = (A * tempC) / (H + tempC) + Math.log(rh);
-    const dewPointC = (H * gamma) / (A - gamma);
-
-    return dewPointC;
-}
-
 function cleanData(data) {
     return [...data]
         .map((row) => ({
@@ -235,62 +136,7 @@ function minutesAgoLabel(timestamp) {
     return `>1 hour ago`;
 }
 
-function tempToColor(t) {
-    if (t < 61) return 'oklch(88.2% 0.059 254.128)'; 
-    if (t < 64) return 'oklch(88.2% 0.059 254.128)'; 
-    if (t < 67) return 'oklch(88.2% 0.059 254.128)'; 
-    if (t < 69) return 'oklch(93.2% 0.032 255.585)'; 
-
-    if (t < 75) return 'oklch(97% 0 0)'; 
-    if (t < 78) return 'oklch(97% 0 0)';
-
-    if (t < 81) return 'oklch(88.5% 0.062 18.334)';
-    return 'oklch(80.8% 0.114 19.571)'; 
-}
-
-function tempToEmojis(temp) {
-    if (temp < 61) {  // below 61
-        return "💀"
-    } else if (temp < 64) {  // 61 - 63
-        return "🧊"
-    } else if (temp < 67) {  // 64 - 66
-        return "❄️"
-    } else if (temp < 69) {  // 67 - 69
-        return "🐧"
-    } else if (temp < 75) {  // 70 - 74
-        return "🧁"
-    } else if (temp < 78) {  // 75 - 77
-        return "🦎"
-    } else if (temp < 81) {  // 78 - 80
-        return "🕯️"
-    } else if (temp < 84) {  // 81 - 83
-        return "🔥"
-    } else {
-        return "💀"  // 84 and above
-    }
-}
-
-function dewPointToEmojis(dewPoint) {
-    if (dewPoint < 30) {        // below 30: extremely dry
-        return "💀"
-    } else if (dewPoint < 40) { // 30 - 39: dry
-        return "🌵"
-    } else if (dewPoint < 45) { // 40 - 44: slightly dry
-        return "🐪"
-    } else if (dewPoint < 55) { // 45 - 54: ideal / very comfortable
-        return "😻"
-    } else if (dewPoint < 58) { // 55 - 57: still comfortable
-        return "🙂"
-    } else if (dewPoint < 63) { // 58 - 62: humid indoors
-        return "😓"
-    } else if (dewPoint < 68) { // 63 - 67: muggy
-        return "🥵"
-    } else {                    // 68 and above: oppressive
-        return "💀"
-    }
-}
-
-function updateStyle() {
+export function getAvgCurrentDewPoint() {
     const data = getChartDataState();
 
     const cube_row = data
@@ -303,22 +149,42 @@ function updateStyle() {
         .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
         .pop();
 
-    // Dew point-based emojis
-    const avgDewPoint = (cube_row.avg_dew_point + room_row.avg_dew_point) / 2;
-    const emoji = dewPointToEmojis(avgDewPoint);
-    document.getElementById('dewEmoji').innerHTML = emoji;
+    return (cube_row.avg_dew_point + room_row.avg_dew_point) / 2;
+}
 
-    const avgTemp = (cube_row.avg_temp + room_row.avg_temp) / 2;
+export function getAvgCurrentTemp() {
+    const data = getChartDataState();
 
-    // Temp-based colors
-    const color = tempToColor(avgTemp);
+    const cube_row = data
+        .filter((row) => row.monitor_id === CUBE_ID)
+        .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
+        .pop();
+
+    const room_row = data
+        .filter((row) => row.monitor_id === ROOM_ID)
+        .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
+        .pop();
+
+    return (cube_row.avg_temp + room_row.avg_temp) / 2;
+}
+
+function updateStyle() {
+    // Dew point based
+    const avgDewPoint = getAvgCurrentDewPoint();
+
+    const dewEmoji = getBucket(avgDewPoint, dewPointToEmojisBuckets);
+    document.getElementById('dewEmoji').innerHTML = dewEmoji;
+    document.getElementById('headerLink').href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${dewEmoji}</text></svg>`;
+    const color = getBucket(avgDewPoint, dewPointToColorBuckets);
+
+    // Temp based
+    const avgTemp = getAvgCurrentTemp();
+
     document.body.style.backgroundColor = color;
     document.getElementById('chart').style.backgroundColor = color;
 
-    // Temp-based emojis
-    const tempEmoji = tempToEmojis(avgTemp);
+    const tempEmoji = getBucket(avgTemp, tempToEmojisBuckets);
     document.getElementById('tempEmoji').innerHTML = tempEmoji;
-    document.getElementById('headerLink').href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${tempEmoji}</text></svg>`;
 }
 
 function updateStatBoxes() {
@@ -340,8 +206,6 @@ function updateStatBoxes() {
 
     document.getElementById('temp').innerHTML = Math.round(temp);
     document.getElementById('dewPoint').innerHTML = Math.round(dew);
-    document.getElementById('humidity').innerHTML = Math.round(humidity);
-
 }
 
 function renderFetchedData() {
@@ -357,7 +221,6 @@ function renderFetchedData() {
 
     renderChart(room, cube);
 
-    // updateDewMessage();
     updateStyle();
     updateStatBoxes();
 }
@@ -374,11 +237,6 @@ async function loadData() {
     const mostRecentTimestampPromise = getMostRecentTimestamp();
     let uncleanData = await getData(startUnix, endUnix, BUCKET_SIZE_MINS);
     setLastPullTimestamp(Date.now());
-
-    // TEST
-    // uncleanData = uncleanData.filter((row) => 
-    //     (new Date(row.bucket_start)).getHours() !== 9
-    // );
 
     const data = cleanData(uncleanData);
     setChartDataState(data);
@@ -438,10 +296,6 @@ async function main() {
     loadingOff();
 }
 
-function getMetricOptionState() {
-    return structuredClone(metricOptionState);
-}
-
 function setChartDataState(update) {
     chartDataState = structuredClone(update);
 }
@@ -450,20 +304,16 @@ function getChartDataState() {
     return structuredClone(chartDataState);
 }
 
+export function getMetricOptionState() {
+    return structuredClone(metricOptionState);
+}
+
 function setMetricOptionState(choice) {
     const VALID = ['dewPoint', 'humidity', 'tempF'];
     if (!VALID.includes(choice)) {
         throw new Error('Invalid metric option.');
     }
     metricOptionState = structuredClone(choice);
-}
-
-function setChartObj(chartObj) {
-    chart = chartObj;
-}
-
-function getChartObj() {
-    return chart;
 }
 
 function getLastDataUpdateTimestamp() {
@@ -484,7 +334,6 @@ function setLastPullTimestamp(val) {
 
 let metricOptionState = 'tempF';
 let chartDataState = null;
-let chart = null;
 let lastDataUpdateTimestamp = null;
 let lastPullTimestamp = null;
 
