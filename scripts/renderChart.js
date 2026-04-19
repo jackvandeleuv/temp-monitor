@@ -46,7 +46,7 @@ function makeTempLineSpec() {
         label: {
             display: true,
             content: nearestBucketEmoji,
-            position: 'end',
+            position: 'start',
             font: {
                 size: 30,
             },
@@ -79,7 +79,7 @@ function makeDewPointLineSpec() {
         label: {
             display: true,
             content: nearestBucketEmoji,
-            position: 'end',
+            position: 'start',
             font: {
                 size: 30,
             },
