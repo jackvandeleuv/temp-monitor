@@ -109,9 +109,15 @@ export function renderChart(room, cube) {
     // If there is a constant line to display.
     if (lineSpec.display !== makeEmptyLineSpec().display) {
         if (lineSpec.yMin > avgMetric) {
-            chartMax = Math.round(lineSpec.yMin + 1);
+            chartMax = Math.max(
+                Math.round(lineSpec.yMin + 1),
+                chartMax
+            );
         } else {
-            chartMin = Math.round(lineSpec.yMin - 1);
+            chartMin = Math.min(
+                Math.round(lineSpec.yMin - 1),
+                chartMin
+            );
         }
     }
 
