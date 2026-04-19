@@ -191,11 +191,10 @@ function updateStyle() {
     const dewEmoji = getBucket(avgDewPoint, dewPointToEmojisBuckets);
     document.getElementById('dewEmoji').innerHTML = dewEmoji;
     document.getElementById('headerLink').href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${dewEmoji}</text></svg>`;
-    const color = getBucket(avgDewPoint, dewPointToColorBuckets);
 
     // Temp based
     const avgTemp = getAvgCurrentTemp();
-
+    const color = getBucket(avgTemp, tempToColorBuckets);
     document.body.style.backgroundColor = color;
     document.getElementById('chart').style.backgroundColor = color;
 
