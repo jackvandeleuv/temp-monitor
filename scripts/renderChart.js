@@ -97,12 +97,32 @@ function makeEmptyLineSpec() {
     }
 }
 
+function ffillVals(vals) {
+    const out = [];
+    if (vals.length === 0) { 
+        return out;
+    }
+
+    let prev = vals[0];
+    for (const val of vals) {
+        if (val === null) {
+            out.push(prev);
+            continue;
+        }
+        out.push(val);
+        prev = val;
+    }
+
+    return out;
+}
+
 export function renderChart(room, cube) {
     const lineSpec = makeLineSpec();
     const avgMetric = getCurrentAvgMetric();
 
     // Set default min/max.
-    const numericData = [...room.data, ...cube.data].map((val) => Number(val));
+    const temps = [...room.data, ...cube.data];
+    const numericData = ffillVals(temps);
     let chartMin = Math.round(Math.min(...numericData)) - 1;
     let chartMax = Math.round(Math.max(...numericData)) + 1;
 
