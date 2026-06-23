@@ -133,7 +133,8 @@ function minutesAgoLabel(timestamp) {
     if (minutes <= 10) return "10 mins ago.";
     if (minutes <= 30) return "30 mins ago.";
     if (minutes <= 60) return "1 hour ago.";
-    return `>1 hour ago`;
+    if (minutes <= 120) return "2 hours ago";
+    return `${Math.floor(minutes / 60)} hours ago`;
 }
 
 export function getAvgCurrentDewPoint() {
