@@ -241,6 +241,26 @@ function renderFetchedData() {
     updateStatBoxes();
 }
 
+function renderErrorState() {
+    const body = document.getElementById('body');
+    body.innerHTML = `
+        <div id="headerBox">
+            <div>
+                <h2>Urban AI</h2>
+                <h4>Thermal KPIs</h4>
+            </div>
+            <div id="emojiBox">
+            </div>
+        </div>
+        <div id="errorMessage">
+            <h1>Something went wrong and there's nothing we can do about it. 🙈</h1>
+            <p>
+                It's possible that the internet is down, or there was a meteor strike, or really any number of things could have happened.
+            </p>
+        </div>
+    `;
+}
+
 async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -252,6 +272,10 @@ async function loadData() {
 
     const mostRecentTimestampPromise = getMostRecentTimestamp();
     let uncleanData = await getData(startUnix, endUnix, BUCKET_SIZE_MINS);
+    if (!uncleanData || uncleanData.length === 0) {
+        return false;
+    }
+    
     setLastPullTimestamp(Date.now());
 
     const data = cleanData(uncleanData);
@@ -259,13 +283,19 @@ async function loadData() {
 
     const mostRecentTimestamp = (await mostRecentTimestampPromise).pop().max_timestamp;
     setLastDataUpdateTimestamp(mostRecentTimestamp * 1000);
+
+    return true;
 }
 
 async function getUpdatedDataLoop() {
     while (true) {
         // Pull new data on a set interval.
         await sleep(DATA_PULL_FREQUENCY_MS);
-        await loadData();
+        const success = await loadData();
+        if (!success) {
+            renderErrorState();
+            throw new Error('Loading data failed!');
+        }
         renderFetchedData();
     }
 }
@@ -294,6 +324,11 @@ function loadingOff() {
 
 async function main() {
     await loadData();
+    const success = await loadData();
+    if (!success) {
+        renderErrorState();
+        throw new Error('Loading data failed!');
+    }
 
     renderFetchedData();
     

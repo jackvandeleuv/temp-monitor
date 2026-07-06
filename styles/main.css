@@ -185,3 +185,15 @@ h4 {
     justify-content: center;
     align-items: center;
 }
+
+#errorMessage {
+    display: flex;
+    flex-direction: column;
+    height: 66%;
+    width: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
