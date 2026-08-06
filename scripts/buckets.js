@@ -21,23 +21,21 @@ export const tempToColorBuckets = [
 ];
 
 export const dewPointToEmojisBuckets = [
-    [-Infinity, 10, '💀'],
-    [11, 20, '🌵'],
-    [21, 39, '🐪'],
-    [40, 57, '😻'],
-    [58, 62, '😓'],
-    [63, 67, '🥵'],
-    [68, Infinity, '💀'],
+    [-Infinity, 50, '🌵'],
+    [50, 60, '‍💁️'],
+    [61, 65, '🫤'],
+    [66, 70, '😓'],
+    [71, 75, '🥵'],
+    [76, Infinity, '💀'],
 ];
 
 export const dewPointToColorBuckets = [
-    [-Infinity, 10, 'oklch(88.2% 0.059 254.128)'],
-    [11, 20, 'oklch(88.2% 0.059 254.128)'],
-    [21, 39, 'oklch(93.2% 0.032 255.585)'],
-    [40, 57, 'oklch(97% 0 0)'],
-    [58, 62, 'oklch(88.5% 0.062 18.334)'],
-    [63, 67, 'oklch(80.8% 0.114 19.571)'],
-    [68, Infinity, 'oklch(80.8% 0.114 19.571)'],
+    [-Infinity, 50, 'oklch(97% 0 0)'],
+    [50, 60, 'oklch(97% 0 0)'],
+    [61, 65, 'oklch(97% 0 0)'],
+    [66, 70, 'oklch(97% 0 0)'],
+    [71, 75, 'oklch(97% 0 0)'],
+    [76, Infinity, 'oklch(97% 0 0)'], 
 ];
 
 export function getBucket(value, buckets) {
