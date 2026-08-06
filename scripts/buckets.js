@@ -2,10 +2,10 @@ export const tempToEmojisBuckets = [
     [-Infinity, 59, '💀'],
     [60, 64, '🧊'],
     [65, 67, '🐧'],
-    [68, 77, '💁'],
-    [78, 80, '🍵'],
-    [81, 82, '🕯️'],
-    [83, 85, '🔥'],
+    [68, 77, '🙂'],
+    [78, 80, '🕯️'],
+    [81, 82, '🔥'],
+    [83, 85, '🐦‍🔥'],
     [86, Infinity, '💀'],
 ];
 
@@ -22,7 +22,7 @@ export const tempToColorBuckets = [
 
 export const dewPointToEmojisBuckets = [
     [-Infinity, 50, '🌵'],
-    [50, 60, '‍💁️'],
+    [50, 60, '🙂'],
     [61, 65, '🫤'],
     [66, 70, '😓'],
     [71, 75, '🥵'],
