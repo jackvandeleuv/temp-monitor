@@ -200,7 +200,7 @@ function updateStyle() {
 
     const tempEmoji = getBucket(avgTemp, tempToEmojisBuckets);
     document.getElementById('tempEmoji').innerHTML = tempEmoji;
-    document.getElementById('headerLink').href = `data:image/svg+xml,<svg xmlns='http://www.w2.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${dewEmoji}</text></svg>`;
+    document.getElementById('headerLink').href = `data:image/svg+xml,<svg xmlns='http://www.w2.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${tempEmoji}</text></svg>`;
 }
 
 function updateStatBoxes() {
