@@ -29,24 +29,17 @@
 
     <div id="statBoxes">
         <div class="statBox">
-            <h2 title="Temperature" id="tempEmoji" class="emoji"></h2>
+            <h2 id="statEmoji" class="emoji"></h2>
             <div>
-                <p class="statBoxVal"><span id="temp"></span>°F</p>
-                <p>Temp</p>
-            </div>
-        </div>
-        <div title="Dew Point is a combined measure of temperature and humidity." class="statBox">
-            <h2 id="dewEmoji" class="emoji"></h2>
-            <div>
-                <p class="statBoxVal"><span id="dewPoint"></span>°F</p>
-                <p>Dew Point</p>
+                <p class="statBoxVal"><span id="statVal"></span></p>
+                <p id="statLabel"></p>
             </div>
         </div>
     </div>
 
     <div id="selectBox">
         <select id="metric">
-            <option value="tempF">Temp (°F)</option>
+            <option value="tempF">Temperature (°F)</option>
             <option value="dewPoint">Dew Point</option>
             <option value="humidity">Humidity</option>
         </select>

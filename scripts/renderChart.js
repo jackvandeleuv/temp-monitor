@@ -1,6 +1,6 @@
 import { dewPointToColorBuckets, dewPointToEmojisBuckets, getBucket, getNextClosestBucket, getNextClosestThreshold, tempToColorBuckets, tempToEmojisBuckets } from "./buckets.js";
 import { MIN_THRESHOLD_DISTANCE } from "./config.js";
-import { getAvgCurrentDewPoint, getAvgCurrentHumidity, getAvgCurrentTemp, getMetricOptionState } from "./main.js";
+import { getDataState, getMetricOptionState } from "./main.js";
 
 function makeLineSpec() {
     const choice = getMetricOptionState();
@@ -14,18 +14,19 @@ function makeLineSpec() {
 }
 
 function getCurrentAvgMetric() {
+    const dataLoader = getDataState();
     const choice = getMetricOptionState();
     if (choice === 'tempF') {
-        return getAvgCurrentTemp();;
+        return dataLoader.getCurrentTemp();
     } else if (choice === 'dewPoint') {
-        return getAvgCurrentDewPoint();;
+        return dataLoader.getCurrentDewPoint();
     } else {
-        return getAvgCurrentHumidity();
+        return dataLoader.getCurrentHumidity();
     }
 }
 
 function makeTempLineSpec() {
-    const avgTemp = getAvgCurrentTemp();
+    const avgTemp = getDataState().getCurrentTemp();
     const nearestBucketThreshold = getNextClosestThreshold(avgTemp, tempToEmojisBuckets);
 
     if (Math.abs(avgTemp - nearestBucketThreshold) > MIN_THRESHOLD_DISTANCE) {
@@ -39,8 +40,8 @@ function makeTempLineSpec() {
 
     return {
         type: 'line',
-        borderWidth: 1,
-        borderColor: 'black',
+        borderWidth: 2,
+        borderColor: 'oklch(70.7% 0.022 261.325)',
         yMin: nearestBucketThreshold,
         yMax: nearestBucketThreshold,
         label: {
@@ -59,7 +60,7 @@ function makeTempLineSpec() {
 }
 
 function makeDewPointLineSpec() {
-    const avgDewPoint = getAvgCurrentDewPoint();
+    const avgDewPoint = getDataState().getCurrentDewPoint();
     const nearestBucketThreshold = getNextClosestThreshold(avgDewPoint, dewPointToEmojisBuckets);
 
     if (Math.abs(avgDewPoint - nearestBucketThreshold) > MIN_THRESHOLD_DISTANCE) {
@@ -72,8 +73,8 @@ function makeDewPointLineSpec() {
 
     return {
         type: 'line',
-        borderWidth: 1,
-        borderColor: 'black',
+        borderWidth: 2,
+        borderColor: 'oklch(70.7% 0.022 261.325)',
         yMin: nearestBucketThreshold,
         yMax: nearestBucketThreshold,
         label: {
@@ -116,15 +117,25 @@ function ffillVals(vals) {
     return out;
 }
 
-export function renderChart(room, cube) {
+function getDefaultChartMin(allData, roomData, cubeData) {
+    const minVal = Math.min(...allData, ...roomData, ...cubeData);
+    const chartMin = Math.round(minVal) - 1;
+    return chartMin;
+}
+
+function getDefaultChartMax(allData, roomData, cubeData) {
+    const maxVal = Math.max(...allData, ...roomData, ...cubeData);
+    const chartMax = Math.round(maxVal) + 1;
+    return chartMax;
+}
+
+export function renderChart(all, room, cube) {
     const lineSpec = makeLineSpec();
     const avgMetric = getCurrentAvgMetric();
 
     // Set default min/max.
-    const temps = [...room.data, ...cube.data];
-    const numericData = ffillVals(temps);
-    let chartMin = Math.round(Math.min(...numericData)) - 1;
-    let chartMax = Math.round(Math.max(...numericData)) + 1;
+    let chartMin = getDefaultChartMin(all.data, room.data, cube.data);
+    let chartMax = getDefaultChartMax(all.data, room.data, cube.data);
 
     // If there is a constant line to display.
     if (lineSpec.display !== makeEmptyLineSpec().display) {
@@ -143,18 +154,29 @@ export function renderChart(room, cube) {
 
     const datasets = [
         {
+            label: 'Overall',
+            data: all.data,
+            borderWidth: 3,
+            borderColor: "oklch(13% 0.028 261.692)",
+            backgroundColor: "black",
+        },
+        {
             label: 'Cubicle',
             data: cube.data,
-            borderWidth: 2,
-            borderColor: "black",
-            backgroundColor: "black",
+            borderWidth: 1,
+            borderDash: [6, 6],
+            borderColor: "oklch(70.7% 0.022 261.325)",
+            backgroundColor: "oklch(70.7% 0.022 261.325)",
+            pointStyle: 'rectRot',
         },
         {
             label: 'Conference Room',
             data: room.data,
-            borderWidth: 2,
+            borderWidth: 1,
             borderDash: [6, 6],
-            borderColor: "black",
+            borderColor: 'oklch(70.7% 0.022 261.325)', 
+            backgroundColor: "oklch(70.7% 0.022 261.325)",
+            pointStyle: 'triangle',
         },
     ];
 

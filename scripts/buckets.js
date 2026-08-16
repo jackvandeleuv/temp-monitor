@@ -30,12 +30,21 @@ export const dewPointToEmojisBuckets = [
 ];
 
 export const dewPointToColorBuckets = [
-    [-Infinity, 50, 'oklch(97% 0 0)'],
-    [50, 60, 'oklch(97% 0 0)'],
-    [61, 65, 'oklch(97% 0 0)'],
-    [66, 70, 'oklch(97% 0 0)'],
-    [71, 75, 'oklch(97% 0 0)'],
-    [76, Infinity, 'oklch(97% 0 0)'], 
+    [-Infinity, Infinity, 'oklch(97% 0 0)'],
+];
+
+export const humidityToEmojiBuckets = [
+    [-Infinity, 29, '🌵'],
+    [30, 39, '🙂'],
+    [40, 59, '🙂'],
+    [60, 69, '🫤'],
+    [70, 79, '😓'],
+    [80, 89, '🥵'],
+    [90, Infinity, '💀'],
+];
+
+export const humidityToColorBuckets = [
+    [-Infinity, Infinity, 'oklch(97% 0 0)'],
 ];
 
 export function getBucket(value, buckets) {

@@ -1,10 +1,12 @@
 import { BUCKET_SIZE_MINS, CUBE_ID, DATA_PULL_FREQUENCY_MS, HOURS_OF_DATA, LAST_UPDATED_FREQUENCY_MS, ROOM_ID } from "./config.js";
 import { getData, getMostRecentTimestamp } from "./fetchData.js";
 import { dewPointToColorBuckets, dewPointToEmojisBuckets, getBucket, getNextClosestBucket, getNextClosestThreshold, tempToColorBuckets, tempToEmojisBuckets } from "./buckets.js";
-import { cToF, dewPoint } from "./utilities.js";
+import { getCurrentColorBucket, getCurrentEmojiBucket, getCurrentStat, getCurrentStatFormatted, getCurrentStatLabel } from "./utilities.js";
 import { renderChart } from "./renderChart.js";
+import { DataLoader } from "./dataLoader.js";
 
-function datetimeToDisplay(datetime) {
+function datetimeToDisplay(unix) {
+    const datetime = new Date(unix);
     const hour = datetime.getHours();
     const dateString = datetime.toISOString().split('T')[0];    
     
@@ -48,7 +50,7 @@ function imputeDataMakeLabels(data) {
         let diffInMins = diffsInMins[i];
         const row = data[i];
 
-        labels.push(datetimeToDisplay(row.bucket_start));
+        labels.push(datetimeToDisplay(row.bucket_start_unix));
         dataOut.push(getMetricFromRow(row));
 
         if (diffInMins <= BUCKET_SIZE_MINS) continue;
@@ -58,7 +60,7 @@ function imputeDataMakeLabels(data) {
         while (diffInMins > BUCKET_SIZE_MINS) {
             diffInMins -= BUCKET_SIZE_MINS;
             curUnix += (BUCKET_SIZE_MINS * 1000 * 60);
-            labels.push(datetimeToDisplay(new Date(curUnix)));
+            labels.push(datetimeToDisplay(curUnix));
             dataOut.push(null);
         }
     }
@@ -75,22 +77,6 @@ function addMetricSelectionListener() {
         setMetricOptionState(elem.value);
         renderFetchedData();
     }))
-}
-
-function cleanData(data) {
-    return [...data]
-        .map((row) => ({
-            bucket_start: new Date(row.bucket_start),
-            bucket_start_unix: Number(new Date(row.bucket_start)),
-            avg_temp: cToF(row.sum_temperature / row.temperature_obs),
-            monitor_id: row.monitor_id,
-            avg_humidity: row.sum_humidity / row.humidity_obs,
-            avg_dew_point: cToF(dewPoint(
-                row.sum_temperature / row.temperature_obs,
-                row.sum_humidity / row.humidity_obs
-            ))
-        }))
-        .sort((a, b) => a.bucket_start - b.bucket_start)
 }
 
 function updateDewMessage() {
@@ -137,108 +123,35 @@ function minutesAgoLabel(timestamp) {
     return `${Math.floor(minutes / 60)} hours ago`;
 }
 
-export function getAvgCurrentDewPoint() {
-    const data = getChartDataState();
-
-    const cube_row = data
-        .filter((row) => row.monitor_id === CUBE_ID)
-        .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
-        .pop();
-
-    const room_row = data
-        .filter((row) => row.monitor_id === ROOM_ID)
-        .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
-        .pop();
-
-    return (cube_row.avg_dew_point + room_row.avg_dew_point) / 2;
-}
-
-export function getAvgCurrentTemp() {
-    const data = getChartDataState();
-
-    const cube_row = data
-        .filter((row) => row.monitor_id === CUBE_ID)
-        .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
-        .pop();
-
-    const room_row = data
-        .filter((row) => row.monitor_id === ROOM_ID)
-        .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
-        .pop();
-
-    return (cube_row.avg_temp + room_row.avg_temp) / 2;
-}
-
-export function getAvgCurrentHumidity() {
-    const data = getChartDataState();
-
-    const cube_row = data
-        .filter((row) => row.monitor_id === CUBE_ID)
-        .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
-        .pop();
-
-    const room_row = data
-        .filter((row) => row.monitor_id === ROOM_ID)
-        .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
-        .pop();
-
-    return (cube_row.avg_humidity + room_row.avg_humidity) / 2;
-}
-
 function updateStyle() {
-    // Dew point based
-    const avgDewPoint = getAvgCurrentDewPoint();
+    const stat = getCurrentStat(data);
+    const color = getBucket(stat, getCurrentColorBucket());
+    const emoji = getBucket(stat, getCurrentEmojiBucket());
+    const label = getCurrentStatLabel();
 
-    const dewEmoji = getBucket(avgDewPoint, dewPointToEmojisBuckets);
-    document.getElementById('dewEmoji').innerHTML = dewEmoji;
-
-    // Temp based
-    const avgTemp = getAvgCurrentTemp();
-    const color = getBucket(avgTemp, tempToColorBuckets);
     document.body.style.backgroundColor = color;
     document.getElementById('chart').style.backgroundColor = color;
-
-    const tempEmoji = getBucket(avgTemp, tempToEmojisBuckets);
-    document.getElementById('tempEmoji').innerHTML = tempEmoji;
-    document.getElementById('headerLink').href = `data:image/svg+xml,<svg xmlns='http://www.w2.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${tempEmoji}</text></svg>`;
+    document.getElementById('statLabel').innerText = label;
+    document.getElementById('statEmoji').innerHTML = emoji;
+    document.getElementById('headerLink').href = `data:image/svg+xml,<svg xmlns='http://www.w2.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${statEmoji}</text></svg>`;
 }
 
-function updateStatBoxes() {
-    const data = getChartDataState();
-
-    const cube_row = data
-        .filter((row) => row.monitor_id === CUBE_ID)
-        .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
-        .pop();
-
-    const room_row = data
-        .filter((row) => row.monitor_id === ROOM_ID)
-        .sort((a, b) => a.bucket_start_unix - b.bucket_start_unix)
-        .pop();
-
-    const humidity = (cube_row.avg_humidity + room_row.avg_humidity) / 2;
-    const temp = (cube_row.avg_temp + room_row.avg_temp) / 2;
-    const dew = (cube_row.avg_dew_point + room_row.avg_dew_point) / 2;
-
-    document.getElementById('temp').innerHTML = Math.round(temp);
-    document.getElementById('dewPoint').innerHTML = Math.round(dew);
+function renderStatBoxes() {
+    const stat = getCurrentStatFormatted(data);
+    document.getElementById('statVal').innerText = stat;
 }
 
 function renderFetchedData() {
     updatedLastUpdated();
 
-    const data = getChartDataState();
+    const all = imputeDataMakeLabels(data.getSeries());
+    const room = imputeDataMakeLabels(data.getSeries(ROOM_ID));
+    const cube = imputeDataMakeLabels(data.getSeries(CUBE_ID));
 
-    let room = data.filter((row) => row.monitor_id === ROOM_ID);
-    room = imputeDataMakeLabels(room);
-
-    let cube = data.filter((row) => row.monitor_id === CUBE_ID);
-    cube = imputeDataMakeLabels(cube);
-
-    renderChart(room, cube);
+    renderChart(all, room, cube);
 
     updateStyle();
-    updateStatBoxes();
+    renderStatBoxes();
 }
 
 function renderErrorState() {
@@ -271,15 +184,15 @@ async function loadData() {
     const endUnix = Math.round(Date.now() / 1000);
 
     const mostRecentTimestampPromise = getMostRecentTimestamp();
-    let uncleanData = await getData(startUnix, endUnix, BUCKET_SIZE_MINS);
+    const uncleanData = await getData(startUnix, endUnix, BUCKET_SIZE_MINS);
     if (!uncleanData || uncleanData.length === 0) {
         return false;
     }
     
     setLastPullTimestamp(Date.now());
 
-    const data = cleanData(uncleanData);
-    setChartDataState(data);
+    data = new DataLoader(uncleanData);
+    setDataState(data);
 
     const mostRecentTimestamp = (await mostRecentTimestampPromise).pop().max_timestamp;
     setLastDataUpdateTimestamp(mostRecentTimestamp * 1000);
@@ -347,12 +260,12 @@ async function main() {
     loadingOff();
 }
 
-function setChartDataState(update) {
-    chartDataState = structuredClone(update);
+export function getDataState() {
+    return data;
 }
 
-function getChartDataState() {
-    return structuredClone(chartDataState);
+function setDataState(dataLoader) {
+    data = dataLoader;
 }
 
 export function getMetricOptionState() {
@@ -384,7 +297,7 @@ function setLastPullTimestamp(val) {
 }
 
 let metricOptionState = 'tempF';
-let chartDataState = null;
+let data = null;
 let lastDataUpdateTimestamp = null;
 let lastPullTimestamp = null;
 
