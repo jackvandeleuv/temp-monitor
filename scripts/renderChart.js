@@ -118,13 +118,15 @@ function ffillVals(vals) {
 }
 
 function getDefaultChartMin(allData, roomData, cubeData) {
-    const minVal = Math.min(...allData, ...roomData, ...cubeData);
+    const vals = ffillVals(...allData, ...roomData, ...cubeData);
+    const minVal = Math.min(vals);
     const chartMin = Math.round(minVal) - 1;
     return chartMin;
 }
 
 function getDefaultChartMax(allData, roomData, cubeData) {
-    const maxVal = Math.max(...allData, ...roomData, ...cubeData);
+    const vals = ffillVals(...allData, ...roomData, ...cubeData);
+    const maxVal = Math.max(vals);
     const chartMax = Math.round(maxVal) + 1;
     return chartMax;
 }
